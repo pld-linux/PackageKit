@@ -4,12 +4,12 @@
 #
 Summary:	System daemon that is a D-BUS abstraction layer for package management
 Name:		PackageKit
-Version:	0.1.8
+Version:	0.1.9
 Release:	0.1
 License:	GPL v2+
 Group:		Applications
 Source0:	http://people.freedesktop.org/~hughsient/releases/%{name}-%{version}.tar.gz
-# Source0-md5:	47f60d925f4bfad5c300c4cb5f444c75
+# Source0-md5:	26de3ac62ee1aa4f6b69d1ce5a8bab3f
 Patch0:		%{name}-poldek.patch
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
@@ -162,7 +162,7 @@ rm -rf $RPM_BUILD_ROOT
 %dir %{_sysconfdir}/PackageKit
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/PackageKit.conf
 %{_sysconfdir}/dbus-1/system.d/org.freedesktop.PackageKit.conf
-%{_datadir}/PolicyKit/policy/packagekit.policy
+%{_datadir}/PolicyKit/policy/org.freedesktop.packagekit.policy
 %{_datadir}/dbus-1/system-services/org.freedesktop.PackageKit.service
 %{_mandir}/man1/pkmon.1*
 %{_mandir}/man1/pkcon.1*
