@@ -18,6 +18,7 @@ BuildRequires:	autoconf >= 2.52
 BuildRequires:	automake
 BuildRequires:	dbus-devel >= 1.1.4
 BuildRequires:	dbus-glib-devel >= 0.74
+BuildRequires:	docbook-to-man
 BuildRequires:	gettext-devel
 BuildRequires:	glib2-devel >= 1:2.14.0
 BuildRequires:	gtk-doc >= 1.9
