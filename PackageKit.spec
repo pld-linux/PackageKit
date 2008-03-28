@@ -1,16 +1,11 @@
-# TODO:
-# - improve poldek backend
-# - checks for libpoldek / libpoclidek in configure.ac
-#
 Summary:	System daemon that is a D-BUS abstraction layer for package management
 Name:		PackageKit
-Version:	0.1.9
-Release:	0.1
+Version:	0.1.10
+Release:	1
 License:	GPL v2+
 Group:		Applications
 Source0:	http://people.freedesktop.org/~hughsient/releases/%{name}-%{version}.tar.gz
-# Source0-md5:	26de3ac62ee1aa4f6b69d1ce5a8bab3f
-Patch0:		%{name}-poldek.patch
+# Source0-md5:	ecb278fa99d494e9a46c504a4068ffe5
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
 BuildRequires:	PolicyKit-devel >= 0.7
@@ -24,12 +19,13 @@ BuildRequires:	glib2-devel >= 1:2.14.0
 BuildRequires:	gtk-doc >= 1.9
 BuildRequires:	libtool
 BuildRequires:	pkgconfig
-BuildRequires:	poldek-devel >= 0.30
+BuildRequires:	poldek-devel >= 0.30-0.20080225.00.0.4
 BuildRequires:	python-devel
 BuildRequires:	rpm-pythonprov
 BuildRequires:	sqlite3-devel
 Requires:	%{name}-libs = %{version}-%{release}
-Requires:	poldek-libs >= 0.30
+Requires:	crondaemon
+Requires:	poldek-libs >= 0.30-0.20080225.00.0.4
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -120,7 +116,6 @@ Wiązania PackageKit dla Pythona.
 
 %prep
 %setup -q
-%patch0 -p1
 
 %build
 %{__libtoolize}
@@ -157,11 +152,13 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/pk-import-specspo
 %attr(755,root,root) %{_bindir}/pkcon
 %attr(755,root,root) %{_bindir}/pkmon
+%attr(750,root,root) /etc/cron.daily/packagekit-background.cron
 %dir %{_libdir}/packagekit-backend
 %attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_poldek.so
 %attr(755,root,root) %{_sbindir}/packagekitd
 %dir %{_sysconfdir}/PackageKit
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/PackageKit.conf
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/sysconfig/packagekit-background
 %{_sysconfdir}/dbus-1/system.d/org.freedesktop.PackageKit.conf
 %{_datadir}/PolicyKit/policy/org.freedesktop.packagekit.policy
 %{_datadir}/dbus-1/system-services/org.freedesktop.PackageKit.service
