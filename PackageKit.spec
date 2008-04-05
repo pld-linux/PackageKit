@@ -1,11 +1,11 @@
 Summary:	System daemon that is a D-BUS abstraction layer for package management
 Name:		PackageKit
-Version:	0.1.10
+Version:	0.1.11
 Release:	1
 License:	GPL v2+
 Group:		Applications
 Source0:	http://people.freedesktop.org/~hughsient/releases/%{name}-%{version}.tar.gz
-# Source0-md5:	ecb278fa99d494e9a46c504a4068ffe5
+# Source0-md5:	ede0d17f7e62b9baf7afba9fa7a9b4e9
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
 BuildRequires:	PolicyKit-devel >= 0.7
@@ -148,11 +148,11 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %doc AUTHORS ChangeLog HACKING NEWS README TODO
 %attr(755,root,root) %{_bindir}/packagekit-bugreport.sh
-%attr(755,root,root) %{_bindir}/pk-import-desktop
-%attr(755,root,root) %{_bindir}/pk-import-specspo
 %attr(755,root,root) %{_bindir}/pkcon
 %attr(755,root,root) %{_bindir}/pkmon
 %attr(750,root,root) /etc/cron.daily/packagekit-background.cron
+%attr(755,root,root) %{_libexecdir}/pk-import-desktop
+%attr(755,root,root) %{_libexecdir}/pk-import-specspo
 %dir %{_libdir}/packagekit-backend
 %attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_poldek.so
 %attr(755,root,root) %{_sbindir}/packagekitd
