@@ -1,31 +1,32 @@
 Summary:	System daemon that is a D-BUS abstraction layer for package management
 Name:		PackageKit
-Version:	0.1.11
+Version:	0.2.0
 Release:	1
 License:	GPL v2+
 Group:		Applications
 Source0:	http://people.freedesktop.org/~hughsient/releases/%{name}-%{version}.tar.gz
-# Source0-md5:	ede0d17f7e62b9baf7afba9fa7a9b4e9
+# Source0-md5:	9b00e316f53394e86b4900b1212eecc4
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
-BuildRequires:	PolicyKit-devel >= 0.7
+BuildRequires:	PolicyKit-devel >= 0.8
 BuildRequires:	autoconf >= 2.52
 BuildRequires:	automake
-BuildRequires:	dbus-devel >= 1.1.4
+BuildRequires:	dbus-devel >= 1.2.0
 BuildRequires:	dbus-glib-devel >= 0.74
 BuildRequires:	docbook-to-man
 BuildRequires:	gettext-devel
-BuildRequires:	glib2-devel >= 1:2.14.0
+BuildRequires:	glib2-devel >= 1:2.16.1
 BuildRequires:	gtk-doc >= 1.9
 BuildRequires:	libtool
 BuildRequires:	pkgconfig
-BuildRequires:	poldek-devel >= 0.30-0.20080225.00.0.4
+BuildRequires:	poldek-devel >= 0.30-0.20080225.00.7
 BuildRequires:	python-devel
 BuildRequires:	rpm-pythonprov
 BuildRequires:	sqlite3-devel
 Requires:	%{name}-libs = %{version}-%{release}
+Requires:	PolicyKit >= 0.8
 Requires:	crondaemon
-Requires:	poldek-libs >= 0.30-0.20080225.00.0.4
+Requires:	poldek >= 0.30-0.20080225.00.7
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -49,7 +50,7 @@ Summary:	Header files for PackageKit
 Summary(pl.UTF-8):	Pliki nagłówkowe biblioteki PackageKit
 Group:		Development/Libraries
 Requires:	%{name}-libs = %{version}-%{release}
-Requires:	glib2-devel >= 1:2.14.0
+Requires:	glib2-devel >= 1:2.16.1
 
 %description devel
 Header files for PackageKit library.
@@ -136,7 +137,11 @@ rm -rf $RPM_BUILD_ROOT
 
 rm -f $RPM_BUILD_ROOT%{_libdir}/packagekit-backend/*.{la,a}
 
+mv -f $RPM_BUILD_ROOT%{_datadir}/locale/{no_nb,nb}
+
 %py_postclean
+
+%find_lang %{name}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -144,7 +149,7 @@ rm -rf $RPM_BUILD_ROOT
 %post libs -p /sbin/ldconfig
 %postun	libs -p /sbin/ldconfig
 
-%files
+%files -f %{name}.lang
 %defattr(644,root,root,755)
 %doc AUTHORS ChangeLog HACKING NEWS README TODO
 %attr(755,root,root) %{_bindir}/packagekit-bugreport.sh
@@ -168,6 +173,8 @@ rm -rf $RPM_BUILD_ROOT
 %ghost /var/lib/PackageKit/transactions.db
 %dir /var/run/PackageKit
 %ghost /var/run/PackageKit/job_count.dat
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/rules.d/51-packagekit-firmware.rules
+%attr(755,root,root) /%{_lib}/udev/packagekit-firmware.sh
 
 %files libs
 %defattr(644,root,root,755)
