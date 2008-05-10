@@ -1,11 +1,11 @@
 Summary:	System daemon that is a D-BUS abstraction layer for package management
 Name:		PackageKit
-Version:	0.2.0
+Version:	0.2.1
 Release:	1
 License:	GPL v2+
 Group:		Applications
 Source0:	http://people.freedesktop.org/~hughsient/releases/%{name}-%{version}.tar.gz
-# Source0-md5:	9b00e316f53394e86b4900b1212eecc4
+# Source0-md5:	ffc256f14094ecdbb8b734fe19d0e690
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
 BuildRequires:	PolicyKit-devel >= 0.8
