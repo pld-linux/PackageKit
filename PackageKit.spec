@@ -139,9 +139,9 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/packagekit-backend/*.{la,a}
 
 mv -f $RPM_BUILD_ROOT%{_datadir}/locale/{no_nb,nb}
 
-if [ "%{_lib}" != "lib" ]; then
-	mv $RPM_BUILD_ROOT/{lib,%{_lib}}
-fi
+%if "%{_lib}" != "lib"
+mv $RPM_BUILD_ROOT/{lib,%{_lib}}
+%endif
 
 %py_postclean
 
