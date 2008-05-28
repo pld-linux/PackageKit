@@ -1,7 +1,7 @@
 Summary:	System daemon that is a D-BUS abstraction layer for package management
 Name:		PackageKit
 Version:	0.2.1
-Release:	1
+Release:	2
 License:	GPL v2+
 Group:		Applications
 Source0:	http://people.freedesktop.org/~hughsient/releases/%{name}-%{version}.tar.gz
@@ -138,6 +138,10 @@ rm -rf $RPM_BUILD_ROOT
 rm -f $RPM_BUILD_ROOT%{_libdir}/packagekit-backend/*.{la,a}
 
 mv -f $RPM_BUILD_ROOT%{_datadir}/locale/{no_nb,nb}
+
+if [ "%{_lib}" != "lib" ]; then
+	mv $RPM_BUILD_ROOT/{lib,%{_lib}}
+fi
 
 %py_postclean
 
