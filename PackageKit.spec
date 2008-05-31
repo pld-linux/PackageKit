@@ -21,6 +21,7 @@ BuildRequires:	libtool
 BuildRequires:	pkgconfig
 BuildRequires:	poldek-devel >= 0.30-0.20080225.00.7
 BuildRequires:	python-devel
+BuildRequires:	readline-devel
 BuildRequires:	rpm-pythonprov
 BuildRequires:	sqlite3-devel
 Requires:	%{name}-libs = %{version}-%{release}
