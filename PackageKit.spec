@@ -1,11 +1,11 @@
 Summary:	System daemon that is a D-BUS abstraction layer for package management
 Name:		PackageKit
-Version:	0.2.1
-Release:	2
+Version:	0.2.2
+Release:	1
 License:	GPL v2+
 Group:		Applications
-Source0:	http://people.freedesktop.org/~hughsient/releases/%{name}-%{version}.tar.gz
-# Source0-md5:	ffc256f14094ecdbb8b734fe19d0e690
+Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.gz
+# Source0-md5:	20c882522323191fd54e1e09f74026d8
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
 BuildRequires:	PolicyKit-devel >= 0.8
@@ -19,7 +19,7 @@ BuildRequires:	glib2-devel >= 1:2.16.1
 BuildRequires:	gtk-doc >= 1.9
 BuildRequires:	libtool
 BuildRequires:	pkgconfig
-BuildRequires:	poldek-devel >= 0.30-0.20080225.00.7
+BuildRequires:	poldek-devel >= 0.30-0.20080604.13.1
 BuildRequires:	python-devel
 BuildRequires:	readline-devel
 BuildRequires:	rpm-pythonprov
@@ -27,7 +27,7 @@ BuildRequires:	sqlite3-devel
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	PolicyKit >= 0.8
 Requires:	crondaemon
-Requires:	poldek >= 0.30-0.20080225.00.7
+Requires:	poldek >= 0.30-0.20080604.13.1
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -120,6 +120,7 @@ Wiązania PackageKit dla Pythona.
 %setup -q
 
 %build
+%{__intltoolize}
 %{__libtoolize}
 %{__aclocal}
 %{__autoconf}
