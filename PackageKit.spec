@@ -1,11 +1,11 @@
 Summary:	System daemon that is a D-BUS abstraction layer for package management
 Name:		PackageKit
-Version:	0.2.2
+Version:	0.2.3
 Release:	1
 License:	GPL v2+
 Group:		Applications
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.gz
-# Source0-md5:	20c882522323191fd54e1e09f74026d8
+# Source0-md5:	11fed88d14aa021068294a430161dfe3
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
 BuildRequires:	PolicyKit-devel >= 0.8
@@ -21,9 +21,9 @@ BuildRequires:	libtool
 BuildRequires:	pkgconfig
 BuildRequires:	poldek-devel >= 0.30-0.20080604.13.1
 BuildRequires:	python-devel
-BuildRequires:	readline-devel
 BuildRequires:	rpm-pythonprov
 BuildRequires:	sqlite3-devel
+Requires(post,postun):	shared-mime-info
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	PolicyKit >= 0.8
 Requires:	crondaemon
@@ -128,7 +128,8 @@ Wiązania PackageKit dla Pythona.
 %{__automake}
 %configure \
 	--enable-poldek \
-	--with-html-dir=%{_gtkdocdir}
+	--with-html-dir=%{_gtkdocdir} \
+	--with-default-backend=poldek
 %{__make}
 
 %install
@@ -152,6 +153,12 @@ mv $RPM_BUILD_ROOT/{lib,%{_lib}}
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+%post
+%update_mime_database
+
+%postun
+%update_mime_database
+
 %post libs -p /sbin/ldconfig
 %postun	libs -p /sbin/ldconfig
 
@@ -173,6 +180,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/dbus-1/system.d/org.freedesktop.PackageKit.conf
 %{_datadir}/PolicyKit/policy/org.freedesktop.packagekit.policy
 %{_datadir}/dbus-1/system-services/org.freedesktop.PackageKit.service
+%{_datadir}/mime/packages/packagekit-catalog.xml
 %{_mandir}/man1/pkmon.1*
 %{_mandir}/man1/pkcon.1*
 %dir /var/lib/PackageKit
