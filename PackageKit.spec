@@ -1,11 +1,11 @@
 Summary:	System daemon that is a D-BUS abstraction layer for package management
 Name:		PackageKit
-Version:	0.2.3
+Version:	0.2.4
 Release:	1
 License:	GPL v2+
 Group:		Applications
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.gz
-# Source0-md5:	11fed88d14aa021068294a430161dfe3
+# Source0-md5:	87bf41fd021077c93549d47de6d5fe07
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
 BuildRequires:	PolicyKit-devel >= 0.8
@@ -193,7 +193,7 @@ rm -rf $RPM_BUILD_ROOT
 %files libs
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libpackagekit.so.*.*.*
-%attr(755,root,root) %ghost %{_libdir}/libpackagekit.so.3
+%attr(755,root,root) %ghost %{_libdir}/libpackagekit.so.4
 
 %files devel
 %defattr(644,root,root,755)
