@@ -1,11 +1,11 @@
 Summary:	System daemon that is a D-BUS abstraction layer for package management
 Name:		PackageKit
-Version:	0.2.4
+Version:	0.3.1
 Release:	1
 License:	GPL v2+
 Group:		Applications
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.gz
-# Source0-md5:	87bf41fd021077c93549d47de6d5fe07
+# Source0-md5:	e7586a3560e76966d2968946fbe7f846
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
 BuildRequires:	PolicyKit-devel >= 0.8
@@ -17,9 +17,10 @@ BuildRequires:	docbook-to-man
 BuildRequires:	gettext-devel
 BuildRequires:	glib2-devel >= 1:2.16.1
 BuildRequires:	gtk-doc >= 1.9
+BuildRequires:	libarchive-devel
 BuildRequires:	libtool
 BuildRequires:	pkgconfig
-BuildRequires:	poldek-devel >= 0.30-0.20080604.13.1
+BuildRequires:	poldek-devel >= 0.30-0.20080820.23.2
 BuildRequires:	python-devel
 BuildRequires:	rpm-pythonprov
 BuildRequires:	sqlite3-devel
@@ -27,7 +28,7 @@ Requires(post,postun):	shared-mime-info
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	PolicyKit >= 0.8
 Requires:	crondaemon
-Requires:	poldek >= 0.30-0.20080604.13.1
+Requires:	poldek >= 0.30-0.20080820.23.2
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -167,8 +168,10 @@ rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS ChangeLog HACKING NEWS README TODO
 %attr(755,root,root) %{_bindir}/packagekit-bugreport.sh
 %attr(755,root,root) %{_bindir}/pkcon
+%attr(755,root,root) %{_bindir}/pkgenpack
 %attr(755,root,root) %{_bindir}/pkmon
 %attr(750,root,root) /etc/cron.daily/packagekit-background.cron
+%attr(755,root,root) %{_libexecdir}/pk-generate-package-list
 %attr(755,root,root) %{_libexecdir}/pk-import-desktop
 %attr(755,root,root) %{_libexecdir}/pk-import-specspo
 %dir %{_libdir}/packagekit-backend
@@ -181,8 +184,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/PolicyKit/policy/org.freedesktop.packagekit.policy
 %{_datadir}/dbus-1/system-services/org.freedesktop.PackageKit.service
 %{_datadir}/mime/packages/packagekit-catalog.xml
-%{_mandir}/man1/pkmon.1*
+%{_datadir}/mime/packages/packagekit-pack.xml
 %{_mandir}/man1/pkcon.1*
+%{_mandir}/man1/pkgenpack.1*
+%{_mandir}/man1/pkmon.1*
+%dir /var/cache/PackageKit
+%dir /var/cache/PackageKit/downloads
 %dir /var/lib/PackageKit
 %ghost /var/lib/PackageKit/transactions.db
 %dir /var/run/PackageKit
