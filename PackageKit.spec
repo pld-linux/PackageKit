@@ -1,9 +1,10 @@
-Summary:	System daemon that is a D-BUS abstraction layer for package management
+Summary:	System daemon that is a D-Bus abstraction layer for package management
+Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
 Version:	0.3.1
 Release:	1
 License:	GPL v2+
-Group:		Applications
+Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.gz
 # Source0-md5:	e7586a3560e76966d2968946fbe7f846
 URL:		http://www.packagekit.org/
@@ -23,6 +24,7 @@ BuildRequires:	pkgconfig
 BuildRequires:	poldek-devel >= 0.30-0.20080820.23.2
 BuildRequires:	python-devel
 BuildRequires:	rpm-pythonprov
+BuildRequires:	rpmbuild(macros) >= 1.311
 BuildRequires:	sqlite3-devel
 Requires(post,postun):	shared-mime-info
 Requires:	%{name}-libs = %{version}-%{release}
@@ -35,6 +37,11 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 PackageKit is a D-Bus abstraction layer that allows the session user
 to manage packages in a secure way using a cross-distro,
 cross-architecture API.
+
+%description -l pl.UTF-8
+PackageKit to warstwa abstrakcji D-Bus pozwalająca użytkownikowi
+sesyjnemu w bezpieczny sposob zarządzać pakietami przy użyciu API
+zgodnego z wieloma dystrybucjami i architekturami.
 
 %package libs
 Summary:	PackageKit library
@@ -98,11 +105,15 @@ Pakiet ten dostarcza bashowe uzupełnianie nazw dla PackageKit.
 
 %package -n pm-utils-packagekit
 Summary:	PackageKit script for pm-utils
+Summary(pl.UTF-8):	Skrypt PackageKit dla pm-utils
 Group:		Applications/System
 Requires:	pm-utils
 
 %description -n pm-utils-packagekit
 PackageKit script for pm-utils.
+
+%description -n pm-utils-packagekit -l pl.UTF-8
+Skrypt PackageKit dla pm-utils.
 
 %package -n python-packagekit
 Summary:	PackageKit Python bindings
@@ -160,7 +171,7 @@ rm -rf $RPM_BUILD_ROOT
 %postun
 %update_mime_database
 
-%post libs -p /sbin/ldconfig
+%post	libs -p /sbin/ldconfig
 %postun	libs -p /sbin/ldconfig
 
 %files -f %{name}.lang
