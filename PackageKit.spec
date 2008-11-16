@@ -23,6 +23,7 @@ BuildRequires:	libtool
 BuildRequires:	pkgconfig
 BuildRequires:	poldek-devel >= 0.30-0.20080820.23.2
 BuildRequires:	python-devel
+BuildRequires:	rpm-devel
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.311
 BuildRequires:	sqlite3-devel
@@ -190,8 +191,8 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_sbindir}/packagekitd
 %dir %{_sysconfdir}/PackageKit
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/PackageKit.conf
-%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/sysconfig/packagekit-background
-%{_sysconfdir}/dbus-1/system.d/org.freedesktop.PackageKit.conf
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/packagekit-background
+/etc/dbus-1/system.d/org.freedesktop.PackageKit.conf
 %{_datadir}/PolicyKit/policy/org.freedesktop.packagekit.policy
 %{_datadir}/dbus-1/system-services/org.freedesktop.PackageKit.service
 %{_datadir}/mime/packages/packagekit-catalog.xml
