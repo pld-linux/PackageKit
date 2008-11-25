@@ -1,0 +1,29 @@
+--- configure.ac	2008-09-22 16:44:51.000000000 +0200
++++ configure.ac-new	2008-11-25 22:24:11.551376250 +0100
+@@ -380,13 +380,7 @@
+ 	    AS_HELP_STRING([--with-security-framework=<option>],
+ 			   [Default security framework to use polkit,dummy]))
+ # try and guess this if nothing is listed
+-if test x$with_security_framework = x; then
+-	if test -f /usr/bin/polkit-action ; then
+-		with_security_framework=polkit
+-	else
+-		AC_MSG_ERROR([--with-security-framework explicitly required when not using PolicyKit or RBAC])
+-	fi
+-fi
++	with_security_framework=polkit
+ 
+ AC_DEFINE_UNQUOTED(security_framework, "$with_security_framework", [default security framework])
+ AC_SUBST(security_framework, "$with_security_framework")
+@@ -397,11 +391,6 @@
+ 			  polkit-grant >= $POLKIT_GRANT_REQUIRED)
+ 	AC_SUBST(POLKIT_CFLAGS)
+ 	AC_SUBST(POLKIT_LIBS)
+-	AC_CHECK_PROG([POLKIT_POLICY_FILE_VALIDATE],
+-		      [polkit-policy-file-validate], [polkit-policy-file-validate])
+-	if test -z "$POLKIT_POLICY_FILE_VALIDATE"; then
+-	   AC_MSG_ERROR([polkit-policy-file-validate not found])
+-	fi
+ 	AC_DEFINE(USE_SECURITY_POLKIT, 1, [if we should use PolicyKit])
+ elif test x$with_security_framework = xdummy; then
+ 	AC_DEFINE(USE_SECURITY_DUMMY, 1, [if we should use a dummy security framework])
