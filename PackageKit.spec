@@ -2,14 +2,14 @@ Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
 Version:	0.3.4
-Release:	2
+Release:	3
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.gz
 # Source0-md5:	5b02713b8b1a18508f64d3db746d710f
+Patch0:		%{name}-ac.patch
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
-BuildRequires:	PolicyKit
 BuildRequires:	PolicyKit-devel >= 0.8
 BuildRequires:	autoconf >= 2.52
 BuildRequires:	automake
@@ -132,6 +132,7 @@ Wiązania PackageKit dla Pythona.
 
 %prep
 %setup -q
+%patch0 -p0
 
 %build
 %{__intltoolize}
