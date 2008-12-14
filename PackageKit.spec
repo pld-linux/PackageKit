@@ -1,14 +1,13 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	0.3.4
-Release:	4
+Version:	0.3.12
+Release:	0.1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.gz
-# Source0-md5:	5b02713b8b1a18508f64d3db746d710f
+# Source0-md5:	e6189d0882812744b87aecef25a4ac08
 Patch0:		%{name}-ac.patch
-Patch1:		%{name}-dbus.patch
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
 BuildRequires:	PolicyKit-devel >= 0.8
@@ -134,7 +133,6 @@ Wiązania PackageKit dla Pythona.
 %prep
 %setup -q
 %patch0 -p0
-%patch1 -p1
 
 %build
 %{__intltoolize}
@@ -147,7 +145,6 @@ Wiązania PackageKit dla Pythona.
 	--enable-poldek \
 	--with-html-dir=%{_gtkdocdir} \
 	--with-default-backend=poldek
-
 %{__make}
 
 %install
@@ -158,7 +155,9 @@ rm -rf $RPM_BUILD_ROOT
 
 rm -f $RPM_BUILD_ROOT%{_libdir}/packagekit-backend/*.{la,a}
 
-mv -f $RPM_BUILD_ROOT%{_datadir}/locale/{no_nb,nb}
+%if "%{_lib}" != "lib"
+mv $RPM_BUILD_ROOT/{lib,%{_lib}}
+%endif
 
 %py_postclean
 
@@ -184,20 +183,20 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/pkgenpack
 %attr(755,root,root) %{_bindir}/pkmon
 %attr(750,root,root) /etc/cron.daily/packagekit-background.cron
-%attr(755,root,root) %{_libexecdir}/pk-generate-package-list
-%attr(755,root,root) %{_libexecdir}/pk-import-desktop
-%attr(755,root,root) %{_libexecdir}/pk-import-specspo
 %dir %{_libdir}/packagekit-backend
 %attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_poldek.so
 %attr(755,root,root) %{_sbindir}/packagekitd
 %dir %{_sysconfdir}/PackageKit
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/PackageKit.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/packagekit-background
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/PackageKit/Vendor.conf
+
 /etc/dbus-1/system.d/org.freedesktop.PackageKit.conf
 %{_datadir}/PolicyKit/policy/org.freedesktop.packagekit.policy
 %{_datadir}/dbus-1/system-services/org.freedesktop.PackageKit.service
+%{_datadir}/mime/packages/packagekit-package-list.xml
+%{_datadir}/mime/packages/packagekit-servicepack.xml
 %{_datadir}/mime/packages/packagekit-catalog.xml
-%{_datadir}/mime/packages/packagekit-pack.xml
 %{_mandir}/man1/pkcon.1*
 %{_mandir}/man1/pkgenpack.1*
 %{_mandir}/man1/pkmon.1*
@@ -205,27 +204,35 @@ rm -rf $RPM_BUILD_ROOT
 %dir /var/cache/PackageKit/downloads
 %dir /var/lib/PackageKit
 %ghost /var/lib/PackageKit/transactions.db
+%ghost /var/lib/PackageKit/job_count.dat
+
 %dir /var/run/PackageKit
-%ghost /var/run/PackageKit/job_count.dat
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/rules.d/51-packagekit-firmware.rules
-%attr(755,root,root) /lib/udev/packagekit-firmware.sh
+%attr(755,root,root) /%{_lib}/udev/packagekit-firmware.sh
 
 %files libs
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libpackagekit.so.*.*.*
-%attr(755,root,root) %ghost %{_libdir}/libpackagekit.so.7
+%attr(755,root,root) %{_libdir}/libpackagekit-glib.so
+%attr(755,root,root) %{_libdir}/libpackagekit-glib.so.*.*.*
+%attr(755,root,root) %ghost %{_libdir}/libpackagekit-glib.so.11
+%attr(755,root,root) %{_libdir}/libpackagekit-qt.so
+%attr(755,root,root) %{_libdir}/libpackagekit-qt.so.*.*.*
+%attr(755,root,root) %ghost %{_libdir}/libpackagekit-qt.so.11
+
 
 %files devel
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libpackagekit.so
-%{_libdir}/libpackagekit.la
-%{_pkgconfigdir}/packagekit.pc
-%{_includedir}/packagekit
-%{_includedir}/packagekit-backend
+%{_includedir}/PackageKit
+%attr(755,root,root) %{_libdir}/libpackagekit-glib.la
+%attr(755,root,root) %{_libdir}/libpackagekit-qt.la
+%{_pkgconfigdir}/packagekit-glib.pc
+%{_pkgconfigdir}/packagekit-qt.pc
+
 
 %files static
 %defattr(644,root,root,755)
-%{_libdir}/libpackagekit.a
+%{_libdir}/libpackagekit-glib.a
+%{_libdir}/libpackagekit-qt.a
 
 %files apidocs
 %defattr(644,root,root,755)
