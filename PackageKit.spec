@@ -99,6 +99,7 @@ Statyczna biblioteka packagekit-glib.
 Summary:	packagekit-qt library
 Summary(pl.UTF-8):	Biblioteka packagekit-qt
 Group:		Libraries
+Obsoletes:	qpackagekit
 
 %description qt
 packagekit-qt library.
@@ -111,6 +112,7 @@ Summary:	Header files for packagekit-qt library
 Summary(pl.UTF-8):	Pliki nagłówkowe biblioteki packagekit-qt
 Group:		Development/Libraries
 Requires:	%{name}-qt = %{version}-%{release}
+Obsoletes:	qpackagekit-devel
 
 %description qt-devel
 Header files for packagekit-qt library.
@@ -290,6 +292,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/libpackagekit-qt.la
 %{_pkgconfigdir}/packagekit-qt.pc
 %{_includedir}/PackageKit/packagekit-qt
+%{_datadir}/cmake/Modules/FindQPackageKit.cmake
 
 %files qt-static
 %defattr(644,root,root,755)
