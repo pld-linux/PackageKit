@@ -2,7 +2,7 @@ Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
 Version:	0.3.12
-Release:	1
+Release:	2
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.gz
@@ -212,10 +212,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %files libs
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libpackagekit-glib.so
 %attr(755,root,root) %{_libdir}/libpackagekit-glib.so.*.*.*
 %attr(755,root,root) %ghost %{_libdir}/libpackagekit-glib.so.11
-%attr(755,root,root) %{_libdir}/libpackagekit-qt.so
 %attr(755,root,root) %{_libdir}/libpackagekit-qt.so.*.*.*
 %attr(755,root,root) %ghost %{_libdir}/libpackagekit-qt.so.11
 
@@ -224,7 +222,9 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %{_includedir}/PackageKit
 %attr(755,root,root) %{_libdir}/libpackagekit-glib.la
+%attr(755,root,root) %{_libdir}/libpackagekit-glib.so
 %attr(755,root,root) %{_libdir}/libpackagekit-qt.la
+%attr(755,root,root) %{_libdir}/libpackagekit-qt.so
 %{_pkgconfigdir}/packagekit-glib.pc
 %{_pkgconfigdir}/packagekit-qt.pc
 
