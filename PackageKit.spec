@@ -33,6 +33,7 @@ Requires:	%{name}-libs = %{version}-%{release}
 Requires:	PolicyKit >= 0.8
 Requires:	crondaemon
 Requires:	poldek >= 0.30-0.20080820.23.2
+Requires:	udev-core >= 1:127
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -155,10 +156,6 @@ rm -rf $RPM_BUILD_ROOT
 
 rm -f $RPM_BUILD_ROOT%{_libdir}/packagekit-backend/*.{la,a}
 
-%if "%{_lib}" != "lib"
-mv $RPM_BUILD_ROOT/{lib,%{_lib}}
-%endif
-
 %py_postclean
 
 %find_lang %{name}
@@ -188,10 +185,11 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_sbindir}/packagekitd
 %dir %{_sysconfdir}/PackageKit
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/PackageKit.conf
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/Vendor.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/packagekit-background
-%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/PackageKit/Vendor.conf
-
 /etc/dbus-1/system.d/org.freedesktop.PackageKit.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/rules.d/51-packagekit-firmware.rules
+%attr(755,root,root) /lib/udev/packagekit-firmware.sh
 %{_datadir}/PolicyKit/policy/org.freedesktop.packagekit.policy
 %{_datadir}/dbus-1/system-services/org.freedesktop.PackageKit.service
 %{_datadir}/mime/packages/packagekit-package-list.xml
@@ -205,10 +203,7 @@ rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/PackageKit
 %ghost /var/lib/PackageKit/transactions.db
 %ghost /var/lib/PackageKit/job_count.dat
-
 %dir /var/run/PackageKit
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/rules.d/51-packagekit-firmware.rules
-%attr(755,root,root) /%{_lib}/udev/packagekit-firmware.sh
 
 %files libs
 %defattr(644,root,root,755)
@@ -217,17 +212,15 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/libpackagekit-qt.so.*.*.*
 %attr(755,root,root) %ghost %{_libdir}/libpackagekit-qt.so.11
 
-
 %files devel
 %defattr(644,root,root,755)
-%{_includedir}/PackageKit
-%attr(755,root,root) %{_libdir}/libpackagekit-glib.la
 %attr(755,root,root) %{_libdir}/libpackagekit-glib.so
-%attr(755,root,root) %{_libdir}/libpackagekit-qt.la
 %attr(755,root,root) %{_libdir}/libpackagekit-qt.so
+%{_libdir}/libpackagekit-glib.la
+%{_libdir}/libpackagekit-qt.la
+%{_includedir}/PackageKit
 %{_pkgconfigdir}/packagekit-glib.pc
 %{_pkgconfigdir}/packagekit-qt.pc
-
 
 %files static
 %defattr(644,root,root,755)
