@@ -6,7 +6,7 @@ Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
 Version:	0.4.0
-Release:	0.1
+Release:	0.2
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.gz
@@ -144,6 +144,33 @@ PackageKit library API documentation.
 %description apidocs -l pl.UTF-8
 Dokumentacja API biblioteki PackageKit.
 
+%package gstreamer-plugin
+Summary:	Install GStreamer codecs using PackageKit
+Summary(pl.UTF-8):	Instaluje kodeki GStreamera używając PackageKit
+Group:		Applications
+Requires:	%{name} = %{version}-%{release}
+
+%description gstreamer-plugin
+The PackageKit GStreamer plugin allows any GStreamer application to
+install codecs from configured repositories using PackageKit.
+
+%description gstreamer-plugin -l pl.UTF-8
+Wtyczka GStreamer pozwala każdej aplikacji używającej GStreamera
+zainstalować kodeki ze skonfigurowanych źródeł PackageKit.
+
+%package gtk-module
+Summary:	Install missing fonts using PackageKit
+Summary(pl.UTF-8):	Instaluje brakujące czcionki używając PackageKit
+Group:		Libraries
+
+%description gtk-module
+The PackageKit GTK+ module allows any pango application to install
+missing fonts from configured repositories using PackageKit.
+
+%description gtk-module -l pl.UTF-8
+Moduł GTK+ pozwala każdej aplikacji używającej pango zainstalować
+brakującą czcionkę ze skonfigurowanych źródeł PackageKit.
+
 %package -n bash-completion-packagekit
 Summary:	bash-completion for PackageKit
 Summary(pl.UTF-8):	bashowe uzupełnianie nazw dla PackageKit
@@ -206,6 +233,11 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
 
+# use pk-gstreamer-install as codec installer
+ln -s pk-gstreamer-install $RPM_BUILD_ROOT%{_libdir}/gst-install-plugins-helper
+
+rm -f $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/modules/*.{la,a}
+rm -f $RPM_BUILD_ROOT%{_libdir}/mozilla/plugins/*.{la,a}
 rm -f $RPM_BUILD_ROOT%{_libdir}/packagekit-backend/*.{la,a}
 rm -f $RPM_BUILD_ROOT%{_libdir}/packagekit-backend/libpk_backend_test_*.so
 
@@ -236,7 +268,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/pkgenpack
 %attr(755,root,root) %{_bindir}/pkmon
 %attr(750,root,root) /etc/cron.daily/packagekit-background.cron
-%attr(755,root,root) %{_libdir}/pk-gstreamer-install
 %dir %{_libdir}/packagekit-backend
 %attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_poldek.so
 %attr(755,root,root) %{_sbindir}/packagekitd
@@ -301,6 +332,17 @@ rm -rf $RPM_BUILD_ROOT
 %files apidocs
 %defattr(644,root,root,755)
 %{_gtkdocdir}/PackageKit
+
+%files gstreamer-plugin
+%defattr(644,root,root,755)
+%doc contrib/gstreamer-plugin/README
+%attr(755,root,root) %{_libdir}/gst-install-plugins-helper
+%attr(755,root,root) %{_libdir}/pk-gstreamer-install
+
+%files gtk-module
+%defattr(644,root,root,755)
+%doc contrib/gtk-module/{GLASS.txt,README}
+%attr(755,root,root) %{_libdir}/gtk-2.0/modules/libpk-gtk-module.so
 
 %files -n bash-completion-packagekit
 %defattr(644,root,root,755)
