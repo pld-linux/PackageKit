@@ -145,8 +145,8 @@ PackageKit library API documentation.
 Dokumentacja API biblioteki PackageKit.
 
 %package gstreamer-plugin
-Summary:	Install GStreamer codecs using PackageKit
-Summary(pl.UTF-8):	Instaluje kodeki GStreamera używając PackageKit
+Summary:	GStreamer codecs installer
+Summary(pl.UTF-8):	Instalator kodeków GStreamera
 Group:		Applications
 Requires:	%{name} = %{version}-%{release}
 
@@ -159,9 +159,9 @@ Wtyczka GStreamer pozwala każdej aplikacji używającej GStreamera
 zainstalować kodeki ze skonfigurowanych źródeł PackageKit.
 
 %package gtk-module
-Summary:	Install missing fonts using PackageKit
-Summary(pl.UTF-8):	Instaluje brakujące czcionki używając PackageKit
-Group:		Libraries
+Summary:	GTK+ module to detect and install missing fonts
+Summary(pl.UTF-8):	Moduł GTK+ do wykrywania i instalowania brakujących czcionek
+Group:		X11/Libraries
 
 %description gtk-module
 The PackageKit GTK+ module allows any pango application to install
