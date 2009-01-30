@@ -5,13 +5,14 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	0.4.0
-Release:	0.2
+Version:	0.4.2
+Release:	0.1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.gz
-# Source0-md5:	8402588f2a1b6f6706d81d08cc1577f6
+# Source0-md5:	a491930e9e05bab9c77b4f449431a22c
 Patch0:		%{name}-ac.patch
+Patch1:		%{name}-poldek.patch
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
 BuildRequires:	PolicyKit-devel >= 0.8
@@ -211,11 +212,14 @@ Wiązania PackageKit dla Pythona.
 %prep
 %setup -q
 %patch0 -p0
+%patch1 -p1
+mkdir m4
 
 %build
+%{__gtkdocize}
 %{__intltoolize}
 %{__libtoolize}
-%{__aclocal}
+%{__aclocal} -I m4
 %{__autoconf}
 %{__autoheader}
 %{__automake}
@@ -289,10 +293,6 @@ rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/PackageKit
 %ghost /var/lib/PackageKit/job_count.dat
 %ghost /var/lib/PackageKit/transactions.db
-%dir /var/run/PackageKit
-%dir /var/run/PackageKit/udev
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/rules.d/51-packagekit-firmware.rules
-%attr(755,root,root) /lib/udev/packagekit-firmware.sh
 
 %files libs
 %defattr(644,root,root,755)
