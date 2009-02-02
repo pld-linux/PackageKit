@@ -1,3 +1,8 @@
+# TODO:
+# - BASH command-not-found functionality disabled for now as it needs patched bash
+#   (details in bash from Fedora Rawhide)
+# - patch /etc/PackageKit/Vendor.conf to make it compatible with PLD Linux
+# - package browser plugin
 #
 # Conditional build:
 %bcond_without	qt	# don't build packagekit-qt library
@@ -5,12 +10,12 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	0.4.2
+Version:	0.4.3
 Release:	0.1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.gz
-# Source0-md5:	a491930e9e05bab9c77b4f449431a22c
+# Source0-md5:	efa33e6a725cbc2fca8ba71fdab4e87f
 Patch0:		%{name}-ac.patch
 Patch1:		%{name}-poldek.patch
 URL:		http://www.packagekit.org/
@@ -36,7 +41,7 @@ BuildRequires:	intltool >= 0.35.0
 BuildRequires:	libarchive-devel
 BuildRequires:	libtool
 BuildRequires:	pkgconfig
-BuildRequires:	poldek-devel >= 0.30-0.20080820.23.2
+BuildRequires:	poldek-devel >= 0.30-0.20080820.23.16
 BuildRequires:	python-devel
 %{?with_qt:BuildRequires:	qt4-build >= 4.4.0}
 BuildRequires:	rpm-pythonprov
@@ -47,7 +52,7 @@ Requires(post,postun):	shared-mime-info
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	PolicyKit >= 0.8
 Requires:	crondaemon
-Requires:	poldek >= 0.30-0.20080820.23.2
+Requires:	poldek >= 0.30-0.20080820.23.16
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -145,6 +150,17 @@ PackageKit library API documentation.
 %description apidocs -l pl.UTF-8
 Dokumentacja API biblioteki PackageKit.
 
+%package docs
+Summary:	PackageKit documentation
+Summary(pl.UTF-8):	Dokumentacja PackageKit
+Group:		Documentation
+
+%description docs
+PackageKit documentation.
+
+%description docs -l pl.UTF-8
+Dokumentacja PackageKit.
+
 %package gstreamer-plugin
 Summary:	GStreamer codecs installer
 Summary(pl.UTF-8):	Instalator kodeków GStreamera
@@ -225,6 +241,8 @@ mkdir m4
 %{__automake}
 %configure \
 	--disable-dummy \
+	--disable-ruck \
+	--disable-command-not-found \
 	--enable-poldek \
 	--%{?with_qt:en}%{!?with_qt:dis}able-qt \
 	--with-html-dir=%{_gtkdocdir} \
@@ -244,6 +262,10 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/modules/*.{la,a}
 rm -f $RPM_BUILD_ROOT%{_libdir}/mozilla/plugins/*.{la,a}
 rm -f $RPM_BUILD_ROOT%{_libdir}/packagekit-backend/*.{la,a}
 rm -f $RPM_BUILD_ROOT%{_libdir}/packagekit-backend/libpk_backend_test_*.so
+rm -f $RPM_BUILD_ROOT%{_libdir}/PackageKitDbusTest.py
+rm -f $RPM_BUILD_ROOT%{_sysconfdir}/dbus-1/system.d/org.freedesktop.PackageKit{Apt,Test}Backend.conf
+rm -f $RPM_BUILD_ROOT%{_datadir}/dbus-1/system-services/org.freedesktop.PackageKit{Apt,Test}Backend.service
+rm -rf $RPM_BUILD_ROOT%{_datadir}/PackageKit/helpers/test_spawn
 
 %py_postclean
 
@@ -280,6 +302,8 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/Vendor.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/sysconfig/packagekit-background
 %{_sysconfdir}/dbus-1/system.d/org.freedesktop.PackageKit.conf
+%dir %{_datadir}/PackageKit
+%attr(755,root,root) %{_datadir}/PackageKit/pk-upgrade-distro.sh
 %{_datadir}/PolicyKit/policy/org.freedesktop.packagekit.policy
 %{_datadir}/dbus-1/system-services/org.freedesktop.PackageKit.service
 %{_datadir}/mime/packages/packagekit-catalog.xml
@@ -333,6 +357,10 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %{_gtkdocdir}/PackageKit
 
+%files docs
+%defattr(644,root,root,755)
+%{_datadir}/PackageKit/website
+
 %files gstreamer-plugin
 %defattr(644,root,root,755)
 %doc contrib/gstreamer-plugin/README
@@ -350,7 +378,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files -n pm-utils-packagekit
 %defattr(644,root,root,755)
-%{_libdir}/pm-utils/sleep.d/95packagekit
+%attr(755,root,root) %{_libdir}/pm-utils/sleep.d/95packagekit
 
 %files -n python-packagekit
 %defattr(644,root,root,755)
