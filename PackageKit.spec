@@ -2,7 +2,7 @@ Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
 Version:	0.3.12
-Release:	3
+Release:	4
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.gz
@@ -33,7 +33,11 @@ Requires:	%{name}-libs = %{version}-%{release}
 Requires:	PolicyKit >= 0.8
 Requires:	crondaemon
 Requires:	poldek >= 0.30-0.20080820.23.2
+%if "%{pld_release}" == "ti"
+Requires:	udev-core >= 1:124-3
+%else
 Requires:	udev-core >= 1:127
+%endif
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
