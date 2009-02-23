@@ -14,7 +14,7 @@ Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.gz
-# Source0-md5:	efa33e6a725cbc2fca8ba71fdab4e87f
+# Source0-md5:	24966a2d951ef8f19ca597c51a3f2655
 Patch0:		%{name}-ac.patch
 Patch1:		%{name}-PLD.patch
 URL:		http://www.packagekit.org/
@@ -40,7 +40,7 @@ BuildRequires:	intltool >= 0.35.0
 BuildRequires:	libarchive-devel
 BuildRequires:	libtool
 BuildRequires:	pkgconfig
-BuildRequires:	poldek-devel >= 0.30-0.20080820.23.16
+BuildRequires:	poldek-devel >= 0.30-0.20080820.23.20
 BuildRequires:	python-devel
 %{?with_qt:BuildRequires:	qt4-build >= 4.4.0}
 BuildRequires:	rpm-pythonprov
@@ -51,7 +51,7 @@ Requires(post,postun):	shared-mime-info
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	PolicyKit >= 0.8
 Requires:	crondaemon
-Requires:	poldek >= 0.30-0.20080820.23.16
+Requires:	poldek >= 0.30-0.20080820.23.20
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
