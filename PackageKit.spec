@@ -1,7 +1,6 @@
 # TODO:
 # - BASH command-not-found functionality disabled for now as it needs patched bash
 #   (details in bash from Fedora Rawhide)
-# - patch /etc/PackageKit/Vendor.conf to make it compatible with PLD Linux
 # - package browser plugin
 #
 # Conditional build:
@@ -10,14 +9,14 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	0.4.3
-Release:	0.1
+Version:	0.4.4
+Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.gz
 # Source0-md5:	efa33e6a725cbc2fca8ba71fdab4e87f
 Patch0:		%{name}-ac.patch
-Patch1:		%{name}-poldek.patch
+Patch1:		%{name}-PLD.patch
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
 BuildRequires:	PolicyKit-devel >= 0.8
