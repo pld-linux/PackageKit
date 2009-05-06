@@ -9,12 +9,12 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	0.4.5
-Release:	1
+Version:	0.4.7
+Release:	0.1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.gz
-# Source0-md5:	a335d299bb7e14d910c600d0975dd375
+# Source0-md5:	a209c31dd6d910216e8765f76f2d9085
 Patch0:		%{name}-ac.patch
 Patch1:		%{name}-PLD.patch
 URL:		http://www.packagekit.org/
@@ -25,6 +25,7 @@ BuildRequires:	QtCore-devel >= 4.4.0
 BuildRequires:	QtDBus-devel >= 4.4.0
 BuildRequires:	QtGui-devel >= 4.4.0
 %endif
+BuildRequires:	QtSql-devel
 BuildRequires:	autoconf >= 2.52
 BuildRequires:	automake
 %{?with_qt:BuildRequires:	cppunit-devel}
@@ -314,7 +315,6 @@ rm -rf $RPM_BUILD_ROOT
 %dir /var/cache/PackageKit
 %dir /var/cache/PackageKit/downloads
 %dir /var/lib/PackageKit
-%ghost /var/lib/PackageKit/job_count.dat
 %ghost /var/lib/PackageKit/transactions.db
 
 %files libs
