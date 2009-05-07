@@ -24,8 +24,9 @@ BuildRequires:	PolicyKit-devel >= 0.8
 BuildRequires:	QtCore-devel >= 4.4.0
 BuildRequires:	QtDBus-devel >= 4.4.0
 BuildRequires:	QtGui-devel >= 4.4.0
+BuildRequires:	QtSql-devel >= 4.4.0
+BuildRequires:	QtXml-devel >= 4.4.0
 %endif
-BuildRequires:	QtSql-devel
 BuildRequires:	autoconf >= 2.52
 BuildRequires:	automake
 %{?with_qt:BuildRequires:	cppunit-devel}
@@ -118,6 +119,11 @@ Summary:	Header files for packagekit-qt library
 Summary(pl.UTF-8):	Pliki nagłówkowe biblioteki packagekit-qt
 Group:		Development/Libraries
 Requires:	%{name}-qt = %{version}-%{release}
+Requires:	QtCore-devel >= 4.4.0
+Requires:	QtDBus-devel >= 4.4.0
+Requires:	QtGui-devel >= 4.4.0
+Requires:	QtSql-devel >= 4.4.0
+Requires:	QtXml-devel >= 4.4.0
 Obsoletes:	qpackagekit-devel
 
 %description qt-devel
