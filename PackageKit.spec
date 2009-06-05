@@ -10,7 +10,7 @@ Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
 Version:	0.4.7
-Release:	1
+Release:	2
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.gz
@@ -172,6 +172,7 @@ Summary:	GStreamer codecs installer
 Summary(pl.UTF-8):	Instalator kodeków GStreamera
 Group:		Applications
 Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-gtk-module = %{version}-%{release}
 
 %description gstreamer-plugin
 The PackageKit GStreamer plugin allows any GStreamer application to
@@ -306,8 +307,8 @@ rm -rf $RPM_BUILD_ROOT
 %dir %{_sysconfdir}/PackageKit
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/PackageKit.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/Vendor.conf
-%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/sysconfig/packagekit-background
-%{_sysconfdir}/dbus-1/system.d/org.freedesktop.PackageKit.conf
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/packagekit-background
+/etc/dbus-1/system.d/org.freedesktop.PackageKit.conf
 %dir %{_datadir}/PackageKit
 %attr(755,root,root) %{_datadir}/PackageKit/pk-upgrade-distro.sh
 %{_datadir}/PolicyKit/policy/org.freedesktop.packagekit.policy
