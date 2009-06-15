@@ -342,6 +342,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %{_libdir}/libpackagekit-glib.a
 
+%if %{with qt}
 %files qt
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libpackagekit-qt.so.*.*.*
@@ -358,6 +359,7 @@ rm -rf $RPM_BUILD_ROOT
 %files qt-static
 %defattr(644,root,root,755)
 %{_libdir}/libpackagekit-qt.a
+%endif
 
 %files apidocs
 %defattr(644,root,root,755)
