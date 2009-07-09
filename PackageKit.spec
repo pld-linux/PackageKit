@@ -9,17 +9,15 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	0.4.8
+Version:	0.5.0
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.gz
-# Source0-md5:	955082ee50358b1cc3eddcb438b7fae4
-Patch0:		%{name}-ac.patch
+# Source0-md5:	e4d442646be7a3a71ed3970ad551a645
 Patch1:		%{name}-PLD.patch
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
-BuildRequires:	PolicyKit-devel >= 0.8
 %if %{with qt}
 BuildRequires:	QtCore-devel >= 4.4.0
 BuildRequires:	QtDBus-devel >= 4.4.0
@@ -43,6 +41,7 @@ BuildRequires:	libarchive-devel
 BuildRequires:	libtool
 BuildRequires:	pkgconfig
 BuildRequires:	poldek-devel >= 0.30-0.20080820.23.20
+BuildRequires:	polkit-devel
 BuildRequires:	python-devel
 %{?with_qt:BuildRequires:	qt4-build >= 4.4.0}
 BuildRequires:	rpm-pythonprov
@@ -234,7 +233,6 @@ Wiązania PackageKit dla Pythona.
 
 %prep
 %setup -q
-%patch0 -p0
 %patch1 -p1
 mkdir m4
 
@@ -269,6 +267,7 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/modules/*.{la,a}
 rm -f $RPM_BUILD_ROOT%{_libdir}/mozilla/plugins/*.{la,a}
 rm -f $RPM_BUILD_ROOT%{_libdir}/packagekit-backend/*.{la,a}
 rm -f $RPM_BUILD_ROOT%{_libdir}/packagekit-backend/libpk_backend_test_*.so
+rm -f $RPM_BUILD_ROOT%{_libdir}/polkit-1/extensions/*.{la,a}
 rm -f $RPM_BUILD_ROOT%{_libdir}/PackageKitDbusTest.py
 rm -f $RPM_BUILD_ROOT%{_sysconfdir}/dbus-1/system.d/org.freedesktop.PackageKit{Apt,Test}Backend.conf
 rm -f $RPM_BUILD_ROOT%{_datadir}/dbus-1/system-services/org.freedesktop.PackageKit{Apt,Test}Backend.service
@@ -300,9 +299,11 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/pkcon
 %attr(755,root,root) %{_bindir}/pkgenpack
 %attr(755,root,root) %{_bindir}/pkmon
+%attr(755,root,root) %{_libexecdir}/pk-debuginfo-install
 %attr(750,root,root) /etc/cron.daily/packagekit-background.cron
 %dir %{_libdir}/packagekit-backend
 %attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_poldek.so
+%attr(755,root,root) %{_libdir}/polkit-1/extensions/libpackagekit-action-lookup.so
 %attr(755,root,root) %{_sbindir}/packagekitd
 %dir %{_sysconfdir}/PackageKit
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/PackageKit.conf
@@ -311,12 +312,13 @@ rm -rf $RPM_BUILD_ROOT
 /etc/dbus-1/system.d/org.freedesktop.PackageKit.conf
 %dir %{_datadir}/PackageKit
 %attr(755,root,root) %{_datadir}/PackageKit/pk-upgrade-distro.sh
-%{_datadir}/PolicyKit/policy/org.freedesktop.packagekit.policy
+%{_datadir}/polkit-1/actions/org.freedesktop.packagekit.policy
 %{_datadir}/dbus-1/system-services/org.freedesktop.PackageKit.service
 %{_datadir}/mime/packages/packagekit-catalog.xml
 %{_datadir}/mime/packages/packagekit-package-list.xml
 %{_datadir}/mime/packages/packagekit-servicepack.xml
 %{_mandir}/man1/pkcon.1*
+%{_mandir}/man1/pk-debuginfo-install.1*
 %{_mandir}/man1/pkgenpack.1*
 %{_mandir}/man1/pkmon.1*
 %dir /var/cache/PackageKit
@@ -327,7 +329,7 @@ rm -rf $RPM_BUILD_ROOT
 %files libs
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libpackagekit-glib.so.*.*.*
-%attr(755,root,root) %ghost %{_libdir}/libpackagekit-glib.so.11
+%attr(755,root,root) %ghost %{_libdir}/libpackagekit-glib.so.12
 
 %files devel
 %defattr(644,root,root,755)
@@ -346,7 +348,7 @@ rm -rf $RPM_BUILD_ROOT
 %files qt
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libpackagekit-qt.so.*.*.*
-%attr(755,root,root) %ghost %{_libdir}/libpackagekit-qt.so.11
+%attr(755,root,root) %ghost %{_libdir}/libpackagekit-qt.so.12
 
 %files qt-devel
 %defattr(644,root,root,755)
