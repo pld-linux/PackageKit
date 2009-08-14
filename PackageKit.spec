@@ -5,6 +5,7 @@
 #
 # Conditional build:
 %bcond_without	qt	# don't build packagekit-qt library
+%bcond_without	docs	# build without docs
 #
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
@@ -30,12 +31,12 @@ BuildRequires:	automake
 %{?with_qt:BuildRequires:	cppunit-devel}
 BuildRequires:	dbus-devel >= 1.2.0
 BuildRequires:	dbus-glib-devel >= 0.76
-BuildRequires:	docbook-to-man
+%{?with_docs:BuildRequires:	docbook-to-man}
 BuildRequires:	gettext-devel
 BuildRequires:	glib2-devel >= 1:2.16.1
 BuildRequires:	gstreamer-plugins-base-devel
 BuildRequires:	gtk+2-devel >= 2:2.14.0
-BuildRequires:	gtk-doc >= 1.9
+%{?with_docs:BuildRequires:	gtk-doc >= 1.9}
 BuildRequires:	intltool >= 0.35.0
 BuildRequires:	libarchive-devel
 BuildRequires:	libtool
@@ -43,6 +44,7 @@ BuildRequires:	pkgconfig
 BuildRequires:	poldek-devel >= 0.30-0.20080820.23.20
 BuildRequires:	polkit-devel
 BuildRequires:	python-devel
+BuildRequires:	readline-devel
 %{?with_qt:BuildRequires:	qt4-build >= 4.4.0}
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.311
@@ -237,7 +239,9 @@ Wiązania PackageKit dla Pythona.
 mkdir m4
 
 %build
+%if %{with docs}
 %{__gtkdocize}
+%endif
 %{__intltoolize}
 %{__libtoolize}
 %{__aclocal} -I m4
@@ -249,6 +253,7 @@ mkdir m4
 	--disable-ruck \
 	--disable-command-not-found \
 	--enable-poldek \
+	--%{!?with_docs:dis}%{?with_docs:en}able-gtk-doc \
 	--%{?with_qt:en}%{!?with_qt:dis}able-qt \
 	--with-html-dir=%{_gtkdocdir} \
 	--with-default-backend=poldek
