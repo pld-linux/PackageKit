@@ -10,12 +10,12 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	0.5.0
+Version:	0.5.1
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.gz
-# Source0-md5:	e4d442646be7a3a71ed3970ad551a645
+# Source0-md5:	8575a23e406fffa8d11ba2ad4b5d99f3
 Patch1:		%{name}-PLD.patch
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
@@ -304,7 +304,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/pkcon
 %attr(755,root,root) %{_bindir}/pkgenpack
 %attr(755,root,root) %{_bindir}/pkmon
-%attr(755,root,root) %{_libexecdir}/pk-debuginfo-install
+%attr(755,root,root) %{_bindir}/pk-debuginfo-install
 %attr(750,root,root) /etc/cron.daily/packagekit-background.cron
 %dir %{_libdir}/packagekit-backend
 %attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_poldek.so
