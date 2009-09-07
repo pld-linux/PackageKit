@@ -10,12 +10,12 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	0.5.1
+Version:	0.5.2
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.gz
-# Source0-md5:	8575a23e406fffa8d11ba2ad4b5d99f3
+# Source0-md5:	e406ad5e776e31c99e70c7cf6e7bcdc4
 Patch1:		%{name}-PLD.patch
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
@@ -310,6 +310,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_poldek.so
 %attr(755,root,root) %{_libdir}/polkit-1/extensions/libpackagekit-action-lookup.so
 %attr(755,root,root) %{_sbindir}/packagekitd
+%attr(755,root,root) %{_sbindir}/pk-device-rebind
 %dir %{_sysconfdir}/PackageKit
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/PackageKit.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/Vendor.conf
@@ -324,6 +325,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/mime/packages/packagekit-servicepack.xml
 %{_mandir}/man1/pkcon.1*
 %{_mandir}/man1/pk-debuginfo-install.1*
+%{_mandir}/man1/pk-device-rebind.1*
 %{_mandir}/man1/pkgenpack.1*
 %{_mandir}/man1/pkmon.1*
 %dir /var/cache/PackageKit
