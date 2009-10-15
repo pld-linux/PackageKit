@@ -54,7 +54,7 @@ Requires(post,postun):	shared-mime-info
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	PolicyKit >= 0.8
 Requires:	crondaemon
-Requires:	poldek >= poldek-0.30-0.20080820.23.31
+Requires:	poldek >= 0.30-0.20080820.23.31
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
