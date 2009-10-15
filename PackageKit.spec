@@ -41,7 +41,7 @@ BuildRequires:	intltool >= 0.35.0
 BuildRequires:	libarchive-devel
 BuildRequires:	libtool
 BuildRequires:	pkgconfig
-BuildRequires:	poldek-devel >= 0.30-0.20080820.23.30
+BuildRequires:	poldek-devel >= 0.30-0.20080820.23.20
 BuildRequires:	polkit-devel
 BuildRequires:	python-devel
 BuildRequires:	readline-devel
@@ -54,7 +54,7 @@ Requires(post,postun):	shared-mime-info
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	PolicyKit >= 0.8
 Requires:	crondaemon
-Requires:	poldek >= 0.30-0.20080820.23.30
+Requires:	poldek >= 0.30-0.20080820.23.20
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
