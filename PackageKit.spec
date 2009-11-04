@@ -10,12 +10,12 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	0.5.3
+Version:	0.5.4
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.bz2
-# Source0-md5:	0f4aeac4abfa939d219b33d3ac4d5ccf
+# Source0-md5:	fe6bb960e11d67af23edd5b7bd758f03
 Patch1:		%{name}-PLD.patch
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
@@ -33,7 +33,7 @@ BuildRequires:	dbus-devel >= 1.2.0
 BuildRequires:	dbus-glib-devel >= 0.76
 %{?with_docs:BuildRequires:	docbook-to-man}
 BuildRequires:	gettext-devel
-BuildRequires:	glib2-devel >= 1:2.16.1
+BuildRequires:	glib2-devel >= 1:2.22.0
 BuildRequires:	gstreamer-plugins-base-devel
 BuildRequires:	gtk+2-devel >= 2:2.14.0
 %{?with_docs:BuildRequires:	gtk-doc >= 1.9}
@@ -42,19 +42,21 @@ BuildRequires:	libarchive-devel
 BuildRequires:	libtool
 BuildRequires:	pkgconfig
 BuildRequires:	poldek-devel >= 0.30-0.20080820.23.20
-BuildRequires:	polkit-devel
+BuildRequires:	polkit-devel >= 0.92
 BuildRequires:	python-devel
 BuildRequires:	readline-devel
 %{?with_qt:BuildRequires:	qt4-build >= 4.4.0}
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.311
 BuildRequires:	sqlite3-devel
+BuildRequires:	udev-glib-devel
 BuildRequires:	xulrunner-devel
 Requires(post,postun):	shared-mime-info
 Requires:	%{name}-libs = %{version}-%{release}
-Requires:	PolicyKit >= 0.8
+Requires:	ConsoleKit
 Requires:	crondaemon
 Requires:	poldek >= 0.30-0.20080820.23.20
+Requires:	polkit >= 0.92
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -71,6 +73,7 @@ zgodnego z wieloma dystrybucjami i architekturami.
 Summary:	packagekit-glib library
 Summary(pl.UTF-8):	Biblioteka packagekit-glib
 Group:		Libraries
+Requires:	glib2 >= 1:2.22.0
 
 %description libs
 packagekit-glib library.
@@ -83,7 +86,9 @@ Summary:	Header files for packagekit-glib library
 Summary(pl.UTF-8):	Pliki nagłówkowe biblioteki packagekit-glib
 Group:		Development/Libraries
 Requires:	%{name}-libs = %{version}-%{release}
-Requires:	glib2-devel >= 1:2.16.1
+Requires:	dbus-devel >= 1.2.0
+Requires:	glib2-devel >= 1:2.22.0
+Requires:	sqlite3-devel
 
 %description devel
 Header files for packagekit-glib library.
@@ -310,7 +315,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_poldek.so
 %attr(755,root,root) %{_libdir}/polkit-1/extensions/libpackagekit-action-lookup.so
 %attr(755,root,root) %{_sbindir}/packagekitd
-#%attr(755,root,root) %{_sbindir}/pk-device-rebind
+%attr(755,root,root) %{_sbindir}/pk-device-rebind
 %dir %{_sysconfdir}/PackageKit
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/PackageKit.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/Vendor.conf
@@ -325,7 +330,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/mime/packages/packagekit-servicepack.xml
 %{_mandir}/man1/pkcon.1*
 %{_mandir}/man1/pk-debuginfo-install.1*
-#%{_mandir}/man1/pk-device-rebind.1*
+%{_mandir}/man1/pk-device-rebind.1*
 %{_mandir}/man1/pkgenpack.1*
 %{_mandir}/man1/pkmon.1*
 %dir /var/cache/PackageKit
