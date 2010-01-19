@@ -10,12 +10,12 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	0.5.5
+Version:	0.6.0
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.bz2
-# Source0-md5:	ecdf49ed150ebc4159d5c1bcfd117efb
+# Source0-md5:	e1d6db7917f2a13bc5175f7cd2791e35
 Patch1:		%{name}-PLD.patch
 Patch2:		bashism.patch
 URL:		http://www.packagekit.org/
@@ -275,6 +275,9 @@ rm -rf $RPM_BUILD_ROOT
 # use pk-gstreamer-install as codec installer
 ln -s pk-gstreamer-install $RPM_BUILD_ROOT%{_libdir}/gst-install-plugins-helper
 
+install -d $RPM_BUILD_ROOT%{_libdir}/pm-utils/sleep.d
+cp contrib/pm-utils/95packagekit $RPM_BUILD_ROOT%{_libdir}/pm-utils/sleep.d/
+
 rm -f $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/modules/*.{la,a}
 rm -f $RPM_BUILD_ROOT%{_libdir}/mozilla/plugins/*.{la,a}
 rm -f $RPM_BUILD_ROOT%{_libdir}/packagekit-backend/*.{la,a}
@@ -342,34 +345,27 @@ rm -rf $RPM_BUILD_ROOT
 
 %files libs
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libpackagekit-glib.so.*.*.*
-%attr(755,root,root) %ghost %{_libdir}/libpackagekit-glib.so.12
 %attr(755,root,root) %{_libdir}/libpackagekit-glib2.so.*.*.*
-%attr(755,root,root) %ghost %{_libdir}/libpackagekit-glib2.so.12
+%attr(755,root,root) %ghost %{_libdir}/libpackagekit-glib2.so.13
 
 %files devel
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libpackagekit-glib.so
 %attr(755,root,root) %{_libdir}/libpackagekit-glib2.so
-%{_libdir}/libpackagekit-glib.la
 %{_libdir}/libpackagekit-glib2.la
-%{_pkgconfigdir}/packagekit-glib.pc
 %{_pkgconfigdir}/packagekit-glib2.pc
 %dir %{_includedir}/PackageKit
 %{_includedir}/PackageKit/backend
-%{_includedir}/PackageKit/packagekit-glib
 %{_includedir}/PackageKit/packagekit-glib2
 
 %files static
 %defattr(644,root,root,755)
-%{_libdir}/libpackagekit-glib.a
 %{_libdir}/libpackagekit-glib2.a
 
 %if %{with qt}
 %files qt
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libpackagekit-qt.so.*.*.*
-%attr(755,root,root) %ghost %{_libdir}/libpackagekit-qt.so.12
+%attr(755,root,root) %ghost %{_libdir}/libpackagekit-qt.so.13
 
 %files qt-devel
 %defattr(644,root,root,755)
