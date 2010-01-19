@@ -20,6 +20,7 @@ Patch1:		%{name}-PLD.patch
 Patch2:		bashism.patch
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
+BuildRequires:	PolicyKit-devel
 %if %{with qt}
 BuildRequires:	QtCore-devel >= 4.4.0
 BuildRequires:	QtDBus-devel >= 4.4.0
@@ -32,6 +33,8 @@ BuildRequires:	automake
 %{?with_qt:BuildRequires:	cppunit-devel}
 BuildRequires:	dbus-devel >= 1.2.0
 BuildRequires:	dbus-glib-devel >= 0.76
+BuildRequires:	docbook-dtd412-xml
+BuildRequires:	docbook-dtd42-xml
 %{?with_docs:BuildRequires:	docbook-to-man}
 BuildRequires:	gettext-devel
 BuildRequires:	glib2-devel >= 1:2.22.0
@@ -42,15 +45,17 @@ BuildRequires:	intltool >= 0.35.0
 BuildRequires:	libarchive-devel
 BuildRequires:	libtool
 BuildRequires:	pkgconfig
+BuildRequires:	pm-utils
 BuildRequires:	poldek-devel >= 0.30-0.20080820.23.20
 BuildRequires:	polkit-devel >= 0.92
 BuildRequires:	python-devel
-BuildRequires:	readline-devel
 %{?with_qt:BuildRequires:	qt4-build >= 4.4.0}
+BuildRequires:	readline-devel
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.311
 BuildRequires:	sqlite3-devel
 BuildRequires:	udev-glib-devel
+BuildRequires:	xorg-lib-libXt-devel
 BuildRequires:	xulrunner-devel
 Requires(post,postun):	shared-mime-info
 Requires:	%{name}-libs = %{version}-%{release}
