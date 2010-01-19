@@ -20,7 +20,6 @@ Patch1:		%{name}-PLD.patch
 Patch2:		bashism.patch
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
-BuildRequires:	PolicyKit-devel
 %if %{with qt}
 BuildRequires:	QtCore-devel >= 4.4.0
 BuildRequires:	QtDBus-devel >= 4.4.0
