@@ -5,7 +5,7 @@
 #
 # Conditional build:
 %bcond_without	qt	# don't build packagekit-qt library
-%bcond_without	docs	# build without docs
+%bcond_without	doc	# build without docs
 #
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
@@ -34,12 +34,12 @@ BuildRequires:	dbus-devel >= 1.2.0
 BuildRequires:	dbus-glib-devel >= 0.76
 BuildRequires:	docbook-dtd412-xml
 BuildRequires:	docbook-dtd42-xml
-%{?with_docs:BuildRequires:	docbook-to-man}
+%{?with_doc:BuildRequires:	docbook-to-man}
 BuildRequires:	gettext-devel
 BuildRequires:	glib2-devel >= 1:2.22.0
 BuildRequires:	gstreamer-plugins-base-devel
 BuildRequires:	gtk+2-devel >= 2:2.14.0
-%{?with_docs:BuildRequires:	gtk-doc >= 1.9}
+%{?with_doc:BuildRequires:	gtk-doc >= 1.9}
 BuildRequires:	intltool >= 0.35.0
 BuildRequires:	libarchive-devel
 BuildRequires:	libtool
@@ -250,7 +250,7 @@ Wiązania PackageKit dla Pythona.
 mkdir m4
 
 %build
-%if %{with docs}
+%if %{with doc}
 %{__gtkdocize}
 %endif
 %{__intltoolize}
@@ -264,7 +264,7 @@ mkdir m4
 	--disable-ruck \
 	--disable-command-not-found \
 	--enable-poldek \
-	--%{!?with_docs:dis}%{?with_docs:en}able-gtk-doc \
+	--%{!?with_doc:dis}%{?with_doc:en}able-gtk-doc \
 	--%{?with_qt:en}%{!?with_qt:dis}able-qt \
 	--with-html-dir=%{_gtkdocdir} \
 	--with-default-backend=poldek
