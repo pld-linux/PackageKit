@@ -34,7 +34,6 @@ BuildRequires:	dbus-devel >= 1.2.0
 BuildRequires:	dbus-glib-devel >= 0.76
 BuildRequires:	docbook-dtd412-xml
 BuildRequires:	docbook-dtd42-xml
-%{?with_doc:BuildRequires:	docbook-to-man}
 BuildRequires:	gettext-devel
 BuildRequires:	glib2-devel >= 1:2.22.0
 BuildRequires:	gstreamer-plugins-base-devel
