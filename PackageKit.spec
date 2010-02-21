@@ -10,12 +10,12 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	0.6.0
-Release:	2
+Version:	0.6.1
+Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.bz2
-# Source0-md5:	e1d6db7917f2a13bc5175f7cd2791e35
+# Source0-md5:	d3835290e88e534a60ca18bd4efa0479
 Patch1:		%{name}-PLD.patch
 Patch2:		bashism.patch
 URL:		http://www.packagekit.org/
