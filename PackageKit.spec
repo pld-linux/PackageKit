@@ -27,7 +27,7 @@ BuildRequires:	QtGui-devel >= 4.4.0
 BuildRequires:	QtSql-devel >= 4.4.0
 BuildRequires:	QtXml-devel >= 4.4.0
 %endif
-BuildRequires:	autoconf >= 2.52
+BuildRequires:	autoconf >= 2.65
 BuildRequires:	automake
 %{?with_qt:BuildRequires:	cppunit-devel}
 BuildRequires:	dbus-devel >= 1.2.0
@@ -246,7 +246,6 @@ Wiązania PackageKit dla Pythona.
 %setup -q
 %patch1 -p1
 %patch2 -p1
-mkdir m4
 
 %build
 %if %{with doc}
