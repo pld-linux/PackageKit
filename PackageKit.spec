@@ -1,7 +1,10 @@
 # TODO:
 # - BASH command-not-found functionality disabled for now as it needs patched bash
 #   (details in bash from Fedora Rawhide)
-# - package browser plugin
+# - do not package browser plugin (it's flawed by concept)
+# - package: gir stuff
+#   /usr/lib/girepository-1.0/PackageKitGlib-1.0.typelib
+#   /usr/share/gir-1.0/PackageKitGlib-1.0.gir
 #
 # Conditional build:
 %bcond_without	qt	# don't build packagekit-qt library
@@ -10,12 +13,12 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	0.6.1
-Release:	4
+Version:	0.6.6
+Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.bz2
-# Source0-md5:	d3835290e88e534a60ca18bd4efa0479
+# Source0-md5:	8e9b0cd25ecf775ecb4f687a50940b5c
 Patch1:		%{name}-PLD.patch
 Patch2:		bashism.patch
 URL:		http://www.packagekit.org/
@@ -261,6 +264,7 @@ Wiązania PackageKit dla Pythona.
 	--disable-dummy \
 	--disable-ruck \
 	--disable-command-not-found \
+	--disable-browser-plugin \
 	--enable-poldek \
 	--%{!?with_doc:dis}%{?with_doc:en}able-gtk-doc \
 	--%{?with_qt:en}%{!?with_qt:dis}able-qt \
@@ -278,7 +282,7 @@ rm -rf $RPM_BUILD_ROOT
 ln -s pk-gstreamer-install $RPM_BUILD_ROOT%{_libdir}/gst-install-plugins-helper
 
 install -d $RPM_BUILD_ROOT%{_libdir}/pm-utils/sleep.d
-cp contrib/pm-utils/95packagekit $RPM_BUILD_ROOT%{_libdir}/pm-utils/sleep.d/
+install -p contrib/pm-utils/95packagekit $RPM_BUILD_ROOT%{_libdir}/pm-utils/sleep.d
 
 rm -f $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/modules/*.{la,a}
 rm -f $RPM_BUILD_ROOT%{_libdir}/mozilla/plugins/*.{la,a}
@@ -321,7 +325,7 @@ rm -rf $RPM_BUILD_ROOT
 %dir %{_libdir}/packagekit-backend
 %attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_poldek.so
 %attr(755,root,root) %{_libdir}/polkit-1/extensions/libpackagekit-action-lookup.so
-%attr(755,root,root) %{_sbindir}/packagekitd
+%attr(755,root,root) %{_libdir}/packagekitd
 %attr(755,root,root) %{_sbindir}/pk-device-rebind
 %dir %{_sysconfdir}/PackageKit
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/PackageKit.conf
@@ -348,7 +352,7 @@ rm -rf $RPM_BUILD_ROOT
 %files libs
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libpackagekit-glib2.so.*.*.*
-%attr(755,root,root) %ghost %{_libdir}/libpackagekit-glib2.so.13
+%attr(755,root,root) %ghost %{_libdir}/libpackagekit-glib2.so.14
 
 %files devel
 %defattr(644,root,root,755)
@@ -367,7 +371,7 @@ rm -rf $RPM_BUILD_ROOT
 %files qt
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libpackagekit-qt.so.*.*.*
-%attr(755,root,root) %ghost %{_libdir}/libpackagekit-qt.so.13
+%attr(755,root,root) %ghost %{_libdir}/libpackagekit-qt.so.14
 
 %files qt-devel
 %defattr(644,root,root,755)
