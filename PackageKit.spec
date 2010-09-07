@@ -9,16 +9,16 @@
 # Conditional build:
 %bcond_without	qt	# don't build packagekit-qt library
 %bcond_without	doc	# build without docs
-#
+
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	0.6.6
+Version:	0.6.8
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.bz2
-# Source0-md5:	8e9b0cd25ecf775ecb4f687a50940b5c
+# Source0-md5:	47987b91826bd522de1202d5a1e2510d
 Patch1:		%{name}-PLD.patch
 Patch2:		bashism.patch
 URL:		http://www.packagekit.org/
