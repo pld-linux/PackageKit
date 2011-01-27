@@ -317,6 +317,14 @@ rm -f $RPM_BUILD_ROOT%{_sysconfdir}/dbus-1/system.d/org.freedesktop.PackageKit{A
 rm -f $RPM_BUILD_ROOT%{_datadir}/dbus-1/system-services/org.freedesktop.PackageKit{Apt,Test}Backend.service
 rm -rf $RPM_BUILD_ROOT%{_datadir}/PackageKit/helpers/test_spawn
 
+%if %{with yum}
+# yumBackend.py can't be compiled (invoked directly), other should be compiled
+%py_comp $RPM_BUILD_ROOT%{_datadir}/PackageKit/helpers/yum
+%py_ocomp $RPM_BUILD_ROOT%{_datadir}/PackageKit/helpers/yum
+rm -f $RPM_BUILD_ROOT%{_datadir}/PackageKit/helpers/yum/yum{Comps,Filter}.py
+rm -f $RPM_BUILD_ROOT%{_datadir}/PackageKit/helpers/yum/yumBackend.py[co]
+%endif
+
 %py_postclean
 
 %find_lang %{name}
@@ -382,13 +390,13 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/Yum.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/yum/pluginconf.d/refresh-packagekit.conf
 %attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_yum.so
-%{_libdir}/yum-plugins/refresh-packagekit.py
+%{_prefix}/lib/yum-plugins/refresh-packagekit.py
 %dir %{_datadir}/PackageKit/helpers/yum
 %{_datadir}/PackageKit/helpers/yum/licenses.txt
 %{_datadir}/PackageKit/helpers/yum/yum-comps-groups.conf
-%{_datadir}/PackageKit/helpers/yum/yumBackend.py
-%{_datadir}/PackageKit/helpers/yum/yumComps.py
-%{_datadir}/PackageKit/helpers/yum/yumFilter.py
+%attr(755,root,root) %{_datadir}/PackageKit/helpers/yum/yumBackend.py
+%{_datadir}/PackageKit/helpers/yum/yumComps.py[co]
+%{_datadir}/PackageKit/helpers/yum/yumFilter.py[co]
 %endif
 
 %files libs
