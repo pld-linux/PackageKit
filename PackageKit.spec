@@ -2,13 +2,16 @@
 # - BASH command-not-found functionality disabled for now as it needs patched bash
 #   (details in bash from Fedora Rawhide)
 # - do not package browser plugin (it's flawed by concept)
-# - package: gir stuff
+# - package: gir stuff (invert bcond if works)
 #   /usr/lib/girepository-1.0/PackageKitGlib-1.0.typelib
 #   /usr/share/gir-1.0/PackageKitGlib-1.0.gir
+# - todo:
+#   configure: WARNING: unrecognized options: --disable-ruck
 #
 # Conditional build:
 %bcond_without	qt	# don't build packagekit-qt library
 %bcond_without	doc	# build without docs
+%bcond_with		gir	# gobject introspection, time to time broken
 %bcond_without	poldek	# build default backend as poldek
 %bcond_with	yum	# build default backend as yum
 
@@ -277,7 +280,9 @@ Wiązania PackageKit dla Pythona.
 	--disable-ruck \
 	--disable-command-not-found \
 	--disable-browser-plugin \
+	%{!?with_gir:--disable-introspection} \
 	%{?with_poldek:--enable-poldek} \
+	%{?with_yum:--enable-yum} \
 	--%{!?with_doc:dis}%{?with_doc:en}able-gtk-doc \
 	--%{?with_qt:en}%{!?with_qt:dis}able-qt \
 	--with-html-dir=%{_gtkdocdir} \
@@ -335,7 +340,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/pk-debuginfo-install
 %attr(750,root,root) /etc/cron.daily/packagekit-background.cron
 %dir %{_libdir}/packagekit-backend
-%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_poldek.so
 %attr(755,root,root) %{_libdir}/polkit-1/extensions/libpackagekit-action-lookup.so
 %attr(755,root,root) %{_libdir}/packagekitd
 %attr(755,root,root) %{_sbindir}/pk-device-rebind
@@ -345,6 +349,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/packagekit-background
 /etc/dbus-1/system.d/org.freedesktop.PackageKit.conf
 %dir %{_datadir}/PackageKit
+%dir %{_datadir}/PackageKit/helpers
 %attr(755,root,root) %{_datadir}/PackageKit/pk-upgrade-distro.sh
 %{_datadir}/polkit-1/actions/org.freedesktop.packagekit.policy
 %{_datadir}/dbus-1/system-services/org.freedesktop.PackageKit.service
@@ -360,6 +365,25 @@ rm -rf $RPM_BUILD_ROOT
 %dir /var/cache/PackageKit/downloads
 %dir /var/lib/PackageKit
 %ghost /var/lib/PackageKit/transactions.db
+
+# backend: poldek
+%if %{with poldek}
+%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_poldek.so
+%endif
+
+# backend: yum
+%if %{with yum}
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/Yum.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/yum/pluginconf.d/refresh-packagekit.conf
+%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_yum.so
+%{_libdir}/yum-plugins/refresh-packagekit.py
+%dir %{_datadir}/PackageKit/helpers/yum
+%{_datadir}/PackageKit/helpers/yum/licenses.txt
+%{_datadir}/PackageKit/helpers/yum/yum-comps-groups.conf
+%{_datadir}/PackageKit/helpers/yum/yumBackend.py
+%{_datadir}/PackageKit/helpers/yum/yumComps.py
+%{_datadir}/PackageKit/helpers/yum/yumFilter.py
+%endif
 
 %files libs
 %defattr(644,root,root,755)
