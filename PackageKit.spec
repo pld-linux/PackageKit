@@ -9,6 +9,18 @@
 # Conditional build:
 %bcond_without	qt	# don't build packagekit-qt library
 %bcond_without	doc	# build without docs
+%bcond_without	poldek	# build default backend as poldek
+%bcond_with	yum	# build default backend as yum
+
+%if %{with yum}
+%define		backend	yum
+%undefine	with_poldek
+%endif
+
+%if %{with poldek}
+%define		backend	poldek
+%undefine	with_yum
+%endif
 
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
@@ -47,7 +59,7 @@ BuildRequires:	libarchive-devel
 BuildRequires:	libtool
 BuildRequires:	pkgconfig
 BuildRequires:	pm-utils
-BuildRequires:	poldek-devel >= 0.30-0.20080820.23.20
+%{?with_poldek:BuildRequires:	poldek-devel >= 0.30-0.20080820.23.20}
 BuildRequires:	polkit-devel >= 0.92
 BuildRequires:	python-devel
 %{?with_qt:BuildRequires:	qt4-build >= 4.4.0}
@@ -62,7 +74,7 @@ Requires(post,postun):	shared-mime-info
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	ConsoleKit
 Requires:	crondaemon
-Requires:	poldek >= 0.30-0.20080820.23.20
+%{?with_poldek:Requires:	poldek >= 0.30-0.20080820.23.20}
 Requires:	polkit >= 0.92
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -265,11 +277,11 @@ Wiązania PackageKit dla Pythona.
 	--disable-ruck \
 	--disable-command-not-found \
 	--disable-browser-plugin \
-	--enable-poldek \
+	%{?with_poldek:--enable-poldek} \
 	--%{!?with_doc:dis}%{?with_doc:en}able-gtk-doc \
 	--%{?with_qt:en}%{!?with_qt:dis}able-qt \
 	--with-html-dir=%{_gtkdocdir} \
-	--with-default-backend=poldek
+	--with-default-backend=%{backend}
 %{__make}
 
 %install
