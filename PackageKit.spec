@@ -77,7 +77,13 @@ Requires(post,postun):	shared-mime-info
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	ConsoleKit
 Requires:	crondaemon
-%{?with_poldek:Requires:	poldek >= 0.30-0.20080820.23.20}
+%if %{with poldek}
+Requires:	poldek >= 0.30-0.20080820.23.20}
+%endif
+%if %{with yum}
+Requires:	python-packagekit = %{version}-%{release}
+Requires:	yum
+%endif
 Requires:	polkit >= 0.92
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
