@@ -12,24 +12,17 @@
 %bcond_without	qt	# don't build packagekit-qt library
 %bcond_without	doc	# build without docs
 %bcond_with		gir	# gobject introspection, time to time broken
-%bcond_without	poldek	# build default backend as poldek
-%bcond_with	yum	# build default backend as yum
+%bcond_without	poldek	# build poldek backend
+%bcond_without	yum		# build yum backend
 
-%if %{with yum}
-%define		backend	yum
-%undefine	with_poldek
-%endif
-
-%if %{with poldek}
+# default backend, configurable at runtime
 %define		backend	poldek
-%undefine	with_yum
-%endif
 
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
 Version:	0.6.8
-Release:	2
+Release:	3
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.bz2
@@ -74,16 +67,10 @@ BuildRequires:	udev-glib-devel
 BuildRequires:	xorg-lib-libXt-devel
 BuildRequires:	xulrunner-devel
 Requires(post,postun):	shared-mime-info
+Requires:	%{name}-backend
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	ConsoleKit
 Requires:	crondaemon
-%if %{with poldek}
-Requires:	poldek >= 0.30-0.20080820.23.20}
-%endif
-%if %{with yum}
-Requires:	python-packagekit = %{version}-%{release}
-Requires:	yum
-%endif
 Requires:	polkit >= 0.92
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -135,6 +122,28 @@ Static packagekit-glib library.
 
 %description static -l pl.UTF-8
 Statyczna biblioteka packagekit-glib.
+
+%package backend-yum
+Summary:	PackageKit YUM backend
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	python-packagekit = %{version}-%{release}
+Requires:	yum >= 3.2.19
+Provides:	%{name}-backend
+
+%description backend-yum
+A backend for PackageKit to enable yum functionality.
+
+%package backend-poldek
+Summary:	PackageKit Poldek backend
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	poldek >= 0.30-0.20080820.23.20}
+Provides:	%{name}-backend
+Conflicts:	%{name} < 0.6.8-3
+
+%description backend-poldek
+A backend for PackageKit to enable Poldek functionality.
 
 %package qt
 Summary:	packagekit-qt library
@@ -380,25 +389,6 @@ rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/PackageKit
 %ghost /var/lib/PackageKit/transactions.db
 
-# backend: poldek
-%if %{with poldek}
-%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_poldek.so
-%endif
-
-# backend: yum
-%if %{with yum}
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/Yum.conf
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/yum/pluginconf.d/refresh-packagekit.conf
-%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_yum.so
-%{_prefix}/lib/yum-plugins/refresh-packagekit.py
-%dir %{_datadir}/PackageKit/helpers/yum
-%{_datadir}/PackageKit/helpers/yum/licenses.txt
-%{_datadir}/PackageKit/helpers/yum/yum-comps-groups.conf
-%attr(755,root,root) %{_datadir}/PackageKit/helpers/yum/yumBackend.py
-%{_datadir}/PackageKit/helpers/yum/yumComps.py[co]
-%{_datadir}/PackageKit/helpers/yum/yumFilter.py[co]
-%endif
-
 %files libs
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libpackagekit-glib2.so.*.*.*
@@ -416,6 +406,29 @@ rm -rf $RPM_BUILD_ROOT
 %files static
 %defattr(644,root,root,755)
 %{_libdir}/libpackagekit-glib2.a
+
+%if %{with poldek}
+%files backend-poldek
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_poldek.so
+%endif
+
+%if %{with yum}
+%files backend-yum
+%defattr(644,root,root,755)
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/Yum.conf
+%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_yum.so
+%dir %{_datadir}/PackageKit/helpers/yum
+%{_datadir}/PackageKit/helpers/yum/licenses.txt
+%{_datadir}/PackageKit/helpers/yum/yum-comps-groups.conf
+%attr(755,root,root) %{_datadir}/PackageKit/helpers/yum/yumBackend.py
+%{_datadir}/PackageKit/helpers/yum/yumComps.py[co]
+%{_datadir}/PackageKit/helpers/yum/yumFilter.py[co]
+
+# yum plugin
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/yum/pluginconf.d/refresh-packagekit.conf
+%{_prefix}/lib/yum-plugins/refresh-packagekit.py
+%endif
 
 %if %{with qt}
 %files qt
