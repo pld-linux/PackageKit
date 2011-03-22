@@ -1,19 +1,14 @@
 # TODO:
 # - BASH command-not-found functionality disabled for now as it needs patched bash
 #   (details in bash from Fedora Rawhide)
-# - do not package browser plugin (it's flawed by concept)
-# - package: gir stuff (invert bcond if works)
-#   /usr/lib/girepository-1.0/PackageKitGlib-1.0.typelib
-#   /usr/share/gir-1.0/PackageKitGlib-1.0.gir
-# - todo:
-#   configure: WARNING: unrecognized options: --disable-ruck
 #
 # Conditional build:
 %bcond_without	qt	# don't build packagekit-qt library
 %bcond_without	doc	# build without docs
-%bcond_with		gir	# gobject introspection, time to time broken
+%bcond_without	gir	# gobject introspection, time to time broken
 %bcond_without	poldek	# build poldek backend
 %bcond_without	yum		# build yum backend
+%bcond_with	browser	# build browser plugin (glen say: it's flawed by concept)
 
 # default backend, configurable at runtime
 %define		backend	poldek
@@ -21,12 +16,12 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	0.6.8
-Release:	3
+Version:	0.6.13
+Release:	0.1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.bz2
-# Source0-md5:	47987b91826bd522de1202d5a1e2510d
+# Source0-md5:	afc7cfa2674e81511784af46f71f1142
 Patch1:		%{name}-PLD.patch
 Patch2:		bashism.patch
 URL:		http://www.packagekit.org/
@@ -39,33 +34,41 @@ BuildRequires:	QtSql-devel >= 4.4.0
 BuildRequires:	QtXml-devel >= 4.4.0
 %endif
 BuildRequires:	autoconf >= 2.65
-BuildRequires:	automake
+BuildRequires:	automake >= 1.11
 %{?with_qt:BuildRequires:	cppunit-devel}
 BuildRequires:	dbus-devel >= 1.2.0
 BuildRequires:	dbus-glib-devel >= 0.76
 BuildRequires:	docbook-dtd412-xml
 BuildRequires:	docbook-dtd42-xml
+BuildRequires:	fontconfig-devel
 BuildRequires:	gettext-devel
 BuildRequires:	glib2-devel >= 1:2.22.0
+%{?with_gir:BuildRequires:	gobject-introspection-devel}
+BuildRequires:	gstreamer-devel
 BuildRequires:	gstreamer-plugins-base-devel
 BuildRequires:	gtk+2-devel >= 2:2.14.0
+BuildRequires:	gtk+3-devel >= 3.0.0
 %{?with_doc:BuildRequires:	gtk-doc >= 1.9}
 BuildRequires:	intltool >= 0.35.0
 BuildRequires:	libarchive-devel
 BuildRequires:	libtool
+BuildRequires:	libxslt-progs
+BuildRequires:	pango-devel
 BuildRequires:	pkgconfig
 BuildRequires:	pm-utils
 %{?with_poldek:BuildRequires:	poldek-devel >= 0.30-0.20080820.23.20}
-BuildRequires:	polkit-devel >= 0.92
+BuildRequires:	polkit-devel >= 0.97
 BuildRequires:	python-devel
 %{?with_qt:BuildRequires:	qt4-build >= 4.4.0}
-BuildRequires:	readline-devel
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.311
 BuildRequires:	sqlite3-devel
 BuildRequires:	udev-glib-devel
-BuildRequires:	xorg-lib-libXt-devel
+%if %{with browser}
+BuildRequires:	cairo-devel
+BuildRequires:	nspr-devel
 BuildRequires:	xulrunner-devel
+%endif
 Requires(post,postun):	shared-mime-info
 Requires:	%{name}-backend
 Requires:	%{name}-libs = %{version}-%{release}
@@ -238,6 +241,19 @@ missing fonts from configured repositories using PackageKit.
 Moduł GTK+ pozwala każdej aplikacji używającej pango zainstalować
 brakującą czcionkę ze skonfigurowanych źródeł PackageKit.
 
+%package gtk3-module
+Summary:	GTK+ 3.x module to detect and install missing fonts
+Summary(pl.UTF-8):	Moduł GTK+ 3.x do wykrywania i instalowania brakujących czcionek
+Group:		X11/Libraries
+
+%description gtk3-module
+The PackageKit GTK+ 3.x module allows any pango application to install
+missing fonts from configured repositories using PackageKit.
+
+%description gtk3-module -l pl.UTF-8
+Moduł GTK+ 3.x pozwala każdej aplikacji używającej pango zainstalować
+brakującą czcionkę ze skonfigurowanych źródeł PackageKit.
+
 %package -n bash-completion-packagekit
 Summary:	bash-completion for PackageKit
 Summary(pl.UTF-8):	bashowe uzupełnianie nazw dla PackageKit
@@ -275,6 +291,20 @@ PackageKit Python bindings.
 %description -n python-packagekit -l pl.UTF-8
 Wiązania PackageKit dla Pythona.
 
+%package -n browser-plugin-packagekit
+Summary:	PackageKit's browser plugin
+Summary(pl.UTF-8):	Wtyczka PackageKit do przeglądarek WWW
+Group:		X11/Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	browser-plugins >= 2.0
+Requires:	browser-plugins(%{_target_base_arch})
+
+%description -n browser-plugin-packagekit
+PackageKit's plugin for browsers.
+
+%description -n browser-plugin-packagekit -l pl.UTF-8
+Wtyczka PackageKit do przeglądarek WWW.
+
 %prep
 %setup -q
 %patch1 -p1
@@ -291,17 +321,19 @@ Wiązania PackageKit dla Pythona.
 %{__autoheader}
 %{__automake}
 %configure \
+	--disable-silent-rules \
 	--disable-dummy \
-	--disable-ruck \
 	--disable-command-not-found \
-	--disable-browser-plugin \
 	%{!?with_gir:--disable-introspection} \
-	%{?with_poldek:--enable-poldek} \
-	%{?with_yum:--enable-yum} \
-	--%{!?with_doc:dis}%{?with_doc:en}able-gtk-doc \
-	--%{?with_qt:en}%{!?with_qt:dis}able-qt \
+	%{__enable_disable browser browser-plugin} \
+	%{__enable_disable poldek} \
+	%{__enable_disable yum} \
+	%{__enable_disable dok gtk-doc}\
+	%{__enable_disable qt} \
 	--with-html-dir=%{_gtkdocdir} \
-	--with-default-backend=%{backend}
+	--with-default-backend=%{backend} \
+	--with-security-framework=polkit \
+	--with-mozilla-plugin-dir=%{_browserpluginsdir}
 %{__make}
 
 %install
@@ -316,22 +348,22 @@ ln -s pk-gstreamer-install $RPM_BUILD_ROOT%{_libdir}/gst-install-plugins-helper
 install -d $RPM_BUILD_ROOT%{_libdir}/pm-utils/sleep.d
 install -p contrib/pm-utils/95packagekit $RPM_BUILD_ROOT%{_libdir}/pm-utils/sleep.d
 
-rm -f $RPM_BUILD_ROOT%{_libdir}/gtk-2.0/modules/*.{la,a}
-rm -f $RPM_BUILD_ROOT%{_libdir}/mozilla/plugins/*.{la,a}
-rm -f $RPM_BUILD_ROOT%{_libdir}/packagekit-backend/*.{la,a}
-rm -f $RPM_BUILD_ROOT%{_libdir}/packagekit-backend/libpk_backend_test_*.so
-rm -f $RPM_BUILD_ROOT%{_libdir}/polkit-1/extensions/*.{la,a}
-rm -f $RPM_BUILD_ROOT%{_libdir}/PackageKitDbusTest.py
-rm -f $RPM_BUILD_ROOT%{_sysconfdir}/dbus-1/system.d/org.freedesktop.PackageKit{Apt,Test}Backend.conf
-rm -f $RPM_BUILD_ROOT%{_datadir}/dbus-1/system-services/org.freedesktop.PackageKit{Apt,Test}Backend.service
-rm -rf $RPM_BUILD_ROOT%{_datadir}/PackageKit/helpers/test_spawn
+%{__rm} $RPM_BUILD_ROOT%{_libdir}/gtk-{2,3}.0/modules/*.{la,a}
+%{__rm} $RPM_BUILD_ROOT%{_libdir}/packagekit-backend/*.{la,a}
+%{__rm} $RPM_BUILD_ROOT%{_libdir}/packagekit-backend/libpk_backend_test_*.so
+%{__rm} $RPM_BUILD_ROOT%{_libdir}/*.la
+%{__rm} -r $RPM_BUILD_ROOT%{_datadir}/PackageKit/helpers/test_spawn
+
+%if %{with browser}
+%{__rm} $RPM_BUILD_ROOT%{_browserpluginsdir}/*.{la,a}
+%endif
 
 %if %{with yum}
 # yumBackend.py can't be compiled (invoked directly), other should be compiled
 %py_comp $RPM_BUILD_ROOT%{_datadir}/PackageKit/helpers/yum
 %py_ocomp $RPM_BUILD_ROOT%{_datadir}/PackageKit/helpers/yum
-rm -f $RPM_BUILD_ROOT%{_datadir}/PackageKit/helpers/yum/yum{Comps,Filter}.py
-rm -f $RPM_BUILD_ROOT%{_datadir}/PackageKit/helpers/yum/yumBackend.py[co]
+%{__rm} $RPM_BUILD_ROOT%{_datadir}/PackageKit/helpers/yum/yum{Comps,Filter}.py
+%{__rm} $RPM_BUILD_ROOT%{_datadir}/PackageKit/helpers/yum/yumBackend.py[co]
 %endif
 
 %py_postclean
@@ -353,6 +385,14 @@ rm -rf $RPM_BUILD_ROOT
 %post	qt -p /sbin/ldconfig
 %postun	qt -p /sbin/ldconfig
 
+%post -n browser-plugin-packagekit
+%update_browser_plugins
+
+%postun -n browser-plugin-packagekit
+if [ "$1" = 0 ]; then
+	%update_browser_plugins
+fi
+
 %files -f %{name}.lang
 %defattr(644,root,root,755)
 %doc AUTHORS ChangeLog HACKING NEWS README TODO
@@ -363,12 +403,14 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/pk-debuginfo-install
 %attr(750,root,root) /etc/cron.daily/packagekit-background.cron
 %dir %{_libdir}/packagekit-backend
-%attr(755,root,root) %{_libdir}/polkit-1/extensions/libpackagekit-action-lookup.so
 %attr(755,root,root) %{_libdir}/packagekitd
 %attr(755,root,root) %{_sbindir}/pk-device-rebind
 %dir %{_sysconfdir}/PackageKit
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/PackageKit.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/Vendor.conf
+%dir %{_sysconfdir}/PackageKit/events
+%{_sysconfdir}/PackageKit/events/post-transaction.d
+%{_sysconfdir}/PackageKit/events/pre-transaction.d
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/packagekit-background
 /etc/dbus-1/system.d/org.freedesktop.PackageKit.conf
 %dir %{_datadir}/PackageKit
@@ -393,15 +435,16 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libpackagekit-glib2.so.*.*.*
 %attr(755,root,root) %ghost %{_libdir}/libpackagekit-glib2.so.14
+%{_libdir}/girepository-1.0/PackageKitGlib-1.0.typelib
 
 %files devel
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libpackagekit-glib2.so
-%{_libdir}/libpackagekit-glib2.la
 %{_pkgconfigdir}/packagekit-glib2.pc
 %dir %{_includedir}/PackageKit
 %{_includedir}/PackageKit/backend
 %{_includedir}/PackageKit/packagekit-glib2
+%{_datadir}/gir-1.0/PackageKitGlib-1.0.gir
 
 %files static
 %defattr(644,root,root,755)
@@ -439,7 +482,6 @@ rm -rf $RPM_BUILD_ROOT
 %files qt-devel
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libpackagekit-qt.so
-%{_libdir}/libpackagekit-qt.la
 %{_pkgconfigdir}/packagekit-qt.pc
 %{_includedir}/PackageKit/packagekit-qt
 %{_datadir}/cmake/Modules/FindQPackageKit.cmake
@@ -468,6 +510,10 @@ rm -rf $RPM_BUILD_ROOT
 %doc contrib/gtk-module/{GLASS.txt,README}
 %attr(755,root,root) %{_libdir}/gtk-2.0/modules/libpk-gtk-module.so
 
+%files gtk3-module
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/gtk-3.0/modules/libpk-gtk-module.so
+
 %files -n bash-completion-packagekit
 %defattr(644,root,root,755)
 %{_sysconfdir}/bash_completion.d/pk-completion.bash
@@ -480,3 +526,9 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %dir %{py_sitescriptdir}/packagekit
 %{py_sitescriptdir}/packagekit/*.py[co]
+
+%if %{with browser}
+%files -n browser-plugin-packagekit
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_browserpluginsdir}/packagekit-plugin.so
+%endif
