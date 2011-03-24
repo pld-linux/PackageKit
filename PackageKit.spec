@@ -25,6 +25,7 @@ Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.bz2
 # Source0-md5:	afc7cfa2674e81511784af46f71f1142
 Patch1:		%{name}-PLD.patch
 Patch2:		bashism.patch
+Patch3:		smart-at-fix.patch
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
 %if %{with qt}
@@ -320,6 +321,7 @@ Wtyczka PackageKit do przeglądarek WWW.
 %setup -q
 %patch1 -p1
 %patch2 -p1
+%patch3 -p1
 
 %build
 %if %{with doc}
