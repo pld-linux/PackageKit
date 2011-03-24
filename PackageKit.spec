@@ -6,9 +6,10 @@
 %bcond_without	qt	# don't build packagekit-qt library
 %bcond_without	doc	# build without docs
 %bcond_without	gir	# gobject introspection, time to time broken
-%bcond_without	poldek	# build poldek backend
-%bcond_without	yum		# build yum backend
-%bcond_with	browser	# build browser plugin (glen say: it's flawed by concept)
+%bcond_without	poldek	# build Poldek backend
+%bcond_without	smart	# build SMART backend
+%bcond_without	yum		# build YUM backend
+%bcond_with	browser	# build browser plugin (patrys says: it's flawed by concept)
 
 # default backend, configurable at runtime
 %define		backend	poldek
@@ -126,17 +127,6 @@ Static packagekit-glib library.
 %description static -l pl.UTF-8
 Statyczna biblioteka packagekit-glib.
 
-%package backend-yum
-Summary:	PackageKit YUM backend
-Group:		Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	python-packagekit = %{version}-%{release}
-Requires:	yum >= 3.2.19
-Provides:	%{name}-backend
-
-%description backend-yum
-A backend for PackageKit to enable yum functionality.
-
 %package backend-poldek
 Summary:	PackageKit Poldek backend
 Group:		Libraries
@@ -147,6 +137,26 @@ Conflicts:	%{name} < 0.6.8-3
 
 %description backend-poldek
 A backend for PackageKit to enable Poldek functionality.
+
+%package backend-smart
+Summary:	PackageKit SMART backend
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	smart
+
+%description backend-smart
+A backend for PackageKit to enable SMART functionality.
+
+%package backend-yum
+Summary:	PackageKit YUM backend
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	python-packagekit = %{version}-%{release}
+Requires:	yum >= 3.2.19
+Provides:	%{name}-backend
+
+%description backend-yum
+A backend for PackageKit to enable yum functionality.
 
 %package qt
 Summary:	packagekit-qt library
@@ -327,6 +337,7 @@ Wtyczka PackageKit do przeglądarek WWW.
 	%{!?with_gir:--disable-introspection} \
 	%{__enable_disable browser browser-plugin} \
 	%{__enable_disable poldek} \
+	%{__enable_disable smart} \
 	%{__enable_disable yum} \
 	%{__enable_disable dok gtk-doc}\
 	%{__enable_disable qt} \
@@ -454,6 +465,14 @@ fi
 %files backend-poldek
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_poldek.so
+%endif
+
+%if %{with smart}
+%files backend-smart
+%defattr(644,root,root,755)
+%{_libdir}/packagekit-backend/libpk_backend_smart.so
+%dir %{_datadir}/PackageKit/helpers/smart
+%{_datadir}/PackageKit/helpers/smart/*
 %endif
 
 %if %{with yum}
