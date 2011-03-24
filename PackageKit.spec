@@ -162,7 +162,8 @@ A backend for PackageKit to enable yum functionality.
 Summary:	packagekit-qt library
 Summary(pl.UTF-8):	Biblioteka packagekit-qt
 Group:		Libraries
-Obsoletes:	qpackagekit
+Obsoletes:	packagekit-qt < 0.4.0
+Obsoletes:	qpackagekit < 0.4.0
 
 %description qt
 packagekit-qt library.
@@ -180,7 +181,7 @@ Requires:	QtDBus-devel >= 4.4.0
 Requires:	QtGui-devel >= 4.4.0
 Requires:	QtSql-devel >= 4.4.0
 Requires:	QtXml-devel >= 4.4.0
-Obsoletes:	qpackagekit-devel
+Obsoletes:	qpackagekit-devel < 0.4.0
 
 %description qt-devel
 Header files for packagekit-qt library.
