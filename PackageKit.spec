@@ -473,7 +473,7 @@ fi
 %defattr(644,root,root,755)
 %{_libdir}/packagekit-backend/libpk_backend_smart.so
 %dir %{_datadir}/PackageKit/helpers/smart
-%{_datadir}/PackageKit/helpers/smart/*
+%attr(755,root,root) %{_datadir}/PackageKit/helpers/smart/smartBackend.py
 %endif
 
 %if %{with yum}
