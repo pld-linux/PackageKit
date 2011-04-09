@@ -1,12 +1,12 @@
---- PackageKit/../BUILD.x86_64-linux/PackageKit-0.6.13/backends/smart/smartBackend.py~	2010-12-11 23:55:29.000000000 +0200
-+++ PackageKit/../BUILD.x86_64-linux/PackageKit-0.6.13/backends/smart/smartBackend.py	2011-03-24 15:17:09.636228396 +0200
+--- backends/smart/smartBackend.py	2011-04-09 16:51:19.060314527 +0200
++++ backends/smart/smartBackend.py~	2011-04-09 16:52:21.816641214 +0200
 @@ -962,7 +962,8 @@
          #if isinstance(package, RPMPackage):
          if package.__class__.__name__ == 'RPMPackage':
              name = package.name
 -            version, arch = package.version.split('@')
 +            # in PLD Linux, there is '@' in kernel related package Release tag
-+            version, arch = package.version.rsplit('@', 1)
++	    version, arch = package.version.split('@',1)
          elif isinstance(package, DebPackage):
              name = package.name
              version, arch = package.version, smart.backends.deb.base.DEBARCH
