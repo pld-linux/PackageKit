@@ -6,7 +6,7 @@
              name = package.name
 -            version, arch = package.version.split('@')
 +            # in PLD Linux, there is '@' in kernel related package Release tag
-+	    version, arch = package.version.split('@',1)
++            version, arch = package.version.split('@',1)
          elif isinstance(package, DebPackage):
              name = package.name
              version, arch = package.version, smart.backends.deb.base.DEBARCH
