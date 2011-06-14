@@ -17,12 +17,12 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	0.6.13
+Version:	0.6.15
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.bz2
-# Source0-md5:	afc7cfa2674e81511784af46f71f1142
+# Source0-md5:	432f505462a00473c941ff907d97953e
 Patch1:		%{name}-PLD.patch
 Patch2:		bashism.patch
 Patch3:		smart-at-fix.patch
@@ -62,6 +62,7 @@ BuildRequires:	pm-utils
 BuildRequires:	polkit-devel >= 0.97
 BuildRequires:	python-devel
 %{?with_qt:BuildRequires:	qt4-build >= 4.4.0}
+BuildRequires:	readline-devel
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.311
 BuildRequires:	sqlite3-devel
@@ -201,6 +202,48 @@ Static packagekit-qt library.
 
 %description qt-static -l pl.UTF-8
 Statyczna biblioteka packagekit-qt.
+
+%package qt2
+Summary:	packagekit-qt2 library
+Summary(pl.UTF-8):	Biblioteka packagekit-qt2
+Group:		Libraries
+Obsoletes:	qpackagekit < 0.4.0
+
+%description qt2
+packagekit-qt2 library.
+
+%description qt2 -l pl.UTF-8
+Biblioteka packagekit-qt2.
+
+%package qt2-devel
+Summary:	Header files for packagekit-qt2 library
+Summary(pl.UTF-8):	Pliki nagłówkowe biblioteki packagekit-qt2
+Group:		Development/Libraries
+Requires:	%{name}-qt2 = %{version}-%{release}
+Requires:	QtCore-devel >= 4.4.0
+Requires:	QtDBus-devel >= 4.4.0
+Requires:	QtGui-devel >= 4.4.0
+Requires:	QtSql-devel >= 4.4.0
+Requires:	QtXml-devel >= 4.4.0
+Obsoletes:	qpackagekit-devel < 0.4.0
+
+%description qt2-devel
+Header files for packagekit-qt2 library.
+
+%description qt2-devel -l pl.UTF-8
+Pliki nagłówkowe biblioteki packagekit-qt2.
+
+%package qt2-static
+Summary:	Static packagekit-qt2 library
+Summary(pl.UTF-8):	Statyczna biblioteka packagekit-qt2
+Group:		Development/Libraries
+Requires:	%{name}-qt2-devel = %{version}-%{release}
+
+%description qt2-static
+Static packagekit-qt2 library.
+
+%description qt2-static -l pl.UTF-8
+Statyczna biblioteka packagekit-qt2.
 
 %package apidocs
 Summary:	PackageKit library API documentation
@@ -511,6 +554,22 @@ fi
 %files qt-static
 %defattr(644,root,root,755)
 %{_libdir}/libpackagekit-qt.a
+
+%files qt2
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/libpackagekit-qt2.so.*.*.*
+%attr(755,root,root) %ghost %{_libdir}/libpackagekit-qt2.so.2
+
+%files qt2-devel
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/libpackagekit-qt2.so
+%{_pkgconfigdir}/packagekit-qt2.pc
+%{_includedir}/PackageKit/packagekit-qt2
+%{_datadir}/cmake/Modules/FindPackageKitQt2.cmake
+
+%files qt2-static
+%defattr(644,root,root,755)
+%{_libdir}/libpackagekit-qt2.a
 %endif
 
 %files apidocs
