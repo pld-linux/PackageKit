@@ -424,7 +424,7 @@ install -p contrib/pm-utils/95packagekit $RPM_BUILD_ROOT%{_libdir}/pm-utils/slee
 %endif
 
 # unsupported
-%{__rm} $RPM_BUILD_ROOT%{_datadir}/locale/it_IT
+#%%{__rm} $RPM_BUILD_ROOT%{_datadir}/locale/it_IT
 
 %py_postclean
 
