@@ -18,7 +18,7 @@ Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
 Version:	0.6.15
-Release:	3
+Release:	4
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.bz2
@@ -75,7 +75,7 @@ BuildRequires:	xulrunner-devel
 Requires(post,postun):	shared-mime-info
 Requires:	%{name}-backend
 Requires:	%{name}-libs = %{version}-%{release}
-Requires:	ConsoleKit
+Requires:	ConsoleKit-x11
 Requires:	crondaemon
 Requires:	polkit >= 0.92
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
