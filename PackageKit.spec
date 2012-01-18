@@ -17,12 +17,12 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	0.6.15
-Release:	5
+Version:	0.6.21
+Release:	1
 License:	GPL v2+
 Group:		Applications/System
-Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.bz2
-# Source0-md5:	432f505462a00473c941ff907d97953e
+Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.xz
+# Source0-md5:	216ad7429d6ea263e7e300be25a01110
 Patch1:		%{name}-PLD.patch
 Patch2:		bashism.patch
 Patch3:		smart-at-fix.patch
@@ -66,7 +66,9 @@ BuildRequires:	readline-devel
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.311
 BuildRequires:	sqlite3-devel
+BuildRequires:	tar >= 1:1.22
 BuildRequires:	udev-glib-devel
+BuildRequires:	xz
 %if %{with browser}
 BuildRequires:	cairo-devel
 BuildRequires:	nspr-devel
