@@ -447,6 +447,9 @@ rm -rf $RPM_BUILD_ROOT
 %post	qt -p /sbin/ldconfig
 %postun	qt -p /sbin/ldconfig
 
+%post	qt2 -p /sbin/ldconfig
+%postun	qt2 -p /sbin/ldconfig
+
 %post -n browser-plugin-packagekit
 %update_browser_plugins
 
