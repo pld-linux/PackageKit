@@ -17,12 +17,12 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	0.6.21
+Version:	0.6.22
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.xz
-# Source0-md5:	216ad7429d6ea263e7e300be25a01110
+# Source0-md5:	94ca18d084c2033f31bb920562659a95
 Patch1:		%{name}-PLD.patch
 Patch2:		bashism.patch
 Patch3:		smart-at-fix.patch
@@ -71,8 +71,8 @@ BuildRequires:	udev-glib-devel
 BuildRequires:	xz
 %if %{with browser}
 BuildRequires:	cairo-devel
-BuildRequires:	nspr-devel
-BuildRequires:	xulrunner-devel
+BuildRequires:	nspr-devel >= 4.8
+BuildRequires:	xulrunner-devel >= 8.0
 %endif
 Requires(post,postun):	shared-mime-info
 Requires:	%{name}-backend
@@ -426,7 +426,7 @@ install -p contrib/pm-utils/95packagekit $RPM_BUILD_ROOT%{_libdir}/pm-utils/slee
 %endif
 
 # unsupported
-%{__rm} -r $RPM_BUILD_ROOT%{_datadir}/locale/it_IT
+%{__rm} -r $RPM_BUILD_ROOT%{_localedir}/it_IT
 
 %py_postclean
 
