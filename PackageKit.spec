@@ -8,7 +8,7 @@
 %bcond_without	gir	# gobject introspection, time to time broken
 %bcond_without	poldek	# build Poldek backend
 %bcond_without	smart	# build SMART backend
-%bcond_without	yum		# build YUM backend
+%bcond_without	yum	# build YUM backend
 %bcond_with	browser	# build browser plugin (patrys says: it's flawed by concept)
 
 # default backend, configurable at runtime
@@ -17,7 +17,7 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	0.6.22
+Version:	0.8.4
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
@@ -26,6 +26,8 @@ Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.xz
 Patch1:		%{name}-PLD.patch
 Patch2:		bashism.patch
 Patch3:		smart-at-fix.patch
+Patch4:		%{name}-git.patch
+Patch5:		%{name}-gstreamer.patch
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
 %if %{with qt}
@@ -46,8 +48,8 @@ BuildRequires:	fontconfig-devel
 BuildRequires:	gettext-devel
 BuildRequires:	glib2-devel >= 1:2.22.0
 %{?with_gir:BuildRequires:	gobject-introspection-devel}
-BuildRequires:	gstreamer-devel
-BuildRequires:	gstreamer-plugins-base-devel
+BuildRequires:	gstreamer-devel >= 1.0.0
+BuildRequires:	gstreamer-plugins-base-devel >= 1.0.0
 BuildRequires:	gtk+2-devel >= 2:2.14.0
 BuildRequires:	gtk+3-devel >= 3.0.0
 %{?with_doc:BuildRequires:	gtk-doc >= 1.9}
@@ -58,7 +60,7 @@ BuildRequires:	libxslt-progs
 BuildRequires:	pango-devel
 BuildRequires:	pkgconfig
 BuildRequires:	pm-utils
-%{?with_poldek:BuildRequires:	poldek-devel >= 0.30-0.20080820.23.20}
+%{?with_poldek:BuildRequires:	poldek-devel >= 0.30-1.rc6.4}
 BuildRequires:	polkit-devel >= 0.97
 BuildRequires:	python-devel
 %{?with_qt:BuildRequires:	qt4-build >= 4.4.0}
@@ -80,6 +82,7 @@ Requires:	%{name}-libs = %{version}-%{release}
 Requires:	ConsoleKit-x11
 Requires:	crondaemon
 Requires:	polkit >= 0.92
+Obsoletes:	PackageKit-docs < 0.8.4
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -135,7 +138,7 @@ Statyczna biblioteka packagekit-glib.
 Summary:	PackageKit Poldek backend
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
-Requires:	poldek >= 0.30-0.20080820.23.20}
+Requires:	poldek >= 0.30-1.rc6.4
 Provides:	%{name}-backend
 Conflicts:	%{name} < 0.6.8-3
 
@@ -162,53 +165,11 @@ Provides:	%{name}-backend
 %description backend-yum
 A backend for PackageKit to enable yum functionality.
 
-%package qt
-Summary:	packagekit-qt library
-Summary(pl.UTF-8):	Biblioteka packagekit-qt
-Group:		Libraries
-Obsoletes:	packagekit-qt < 0.4.0
-Obsoletes:	qpackagekit < 0.4.0
-
-%description qt
-packagekit-qt library.
-
-%description qt -l pl.UTF-8
-Biblioteka packagekit-qt.
-
-%package qt-devel
-Summary:	Header files for packagekit-qt library
-Summary(pl.UTF-8):	Pliki nagłówkowe biblioteki packagekit-qt
-Group:		Development/Libraries
-Requires:	%{name}-qt = %{version}-%{release}
-Requires:	QtCore-devel >= 4.4.0
-Requires:	QtDBus-devel >= 4.4.0
-Requires:	QtGui-devel >= 4.4.0
-Requires:	QtSql-devel >= 4.4.0
-Requires:	QtXml-devel >= 4.4.0
-Obsoletes:	qpackagekit-devel < 0.4.0
-
-%description qt-devel
-Header files for packagekit-qt library.
-
-%description qt-devel -l pl.UTF-8
-Pliki nagłówkowe biblioteki packagekit-qt.
-
-%package qt-static
-Summary:	Static packagekit-qt library
-Summary(pl.UTF-8):	Statyczna biblioteka packagekit-qt
-Group:		Development/Libraries
-Requires:	%{name}-qt-devel = %{version}-%{release}
-
-%description qt-static
-Static packagekit-qt library.
-
-%description qt-static -l pl.UTF-8
-Statyczna biblioteka packagekit-qt.
-
 %package qt2
 Summary:	packagekit-qt2 library
 Summary(pl.UTF-8):	Biblioteka packagekit-qt2
 Group:		Libraries
+Obsoletes:	PackageKit-qt < 0.8.4
 Obsoletes:	qpackagekit < 0.4.0
 
 %description qt2
@@ -227,6 +188,7 @@ Requires:	QtDBus-devel >= 4.4.0
 Requires:	QtGui-devel >= 4.4.0
 Requires:	QtSql-devel >= 4.4.0
 Requires:	QtXml-devel >= 4.4.0
+Obsoletes:	PackageKit-qt-devel < 0.8.4
 Obsoletes:	qpackagekit-devel < 0.4.0
 
 %description qt2-devel
@@ -240,6 +202,7 @@ Summary:	Static packagekit-qt2 library
 Summary(pl.UTF-8):	Statyczna biblioteka packagekit-qt2
 Group:		Development/Libraries
 Requires:	%{name}-qt2-devel = %{version}-%{release}
+Obsoletes:	PackageKit-qt-static < 0.8.4
 
 %description qt2-static
 Static packagekit-qt2 library.
@@ -258,17 +221,6 @@ PackageKit library API documentation.
 
 %description apidocs -l pl.UTF-8
 Dokumentacja API biblioteki PackageKit.
-
-%package docs
-Summary:	PackageKit documentation
-Summary(pl.UTF-8):	Dokumentacja PackageKit
-Group:		Documentation
-
-%description docs
-PackageKit documentation.
-
-%description docs -l pl.UTF-8
-Dokumentacja PackageKit.
 
 %package gstreamer-plugin
 Summary:	GStreamer codecs installer
@@ -367,6 +319,8 @@ Wtyczka PackageKit do przeglądarek WWW.
 %patch1 -p1
 %patch2 -p1
 %patch3 -p0
+%patch4 -p1
+%patch5 -p1
 
 %build
 %if %{with doc}
@@ -410,6 +364,7 @@ install -p contrib/pm-utils/95packagekit $RPM_BUILD_ROOT%{_libdir}/pm-utils/slee
 %{__rm} $RPM_BUILD_ROOT%{_libdir}/gtk-{2,3}.0/modules/*.{la,a}
 %{__rm} $RPM_BUILD_ROOT%{_libdir}/packagekit-backend/*.{la,a}
 %{__rm} $RPM_BUILD_ROOT%{_libdir}/packagekit-backend/libpk_backend_test_*.so
+%{__rm} $RPM_BUILD_ROOT%{_libdir}/packagekit-plugins/*.{la,a}
 %{__rm} $RPM_BUILD_ROOT%{_libdir}/*.la
 %{__rm} -r $RPM_BUILD_ROOT%{_datadir}/PackageKit/helpers/test_spawn
 
@@ -444,9 +399,6 @@ rm -rf $RPM_BUILD_ROOT
 %post	libs -p /sbin/ldconfig
 %postun	libs -p /sbin/ldconfig
 
-%post	qt -p /sbin/ldconfig
-%postun	qt -p /sbin/ldconfig
-
 %post	qt2 -p /sbin/ldconfig
 %postun	qt2 -p /sbin/ldconfig
 
@@ -468,7 +420,20 @@ fi
 %attr(755,root,root) %{_bindir}/pk-debuginfo-install
 %attr(750,root,root) /etc/cron.daily/packagekit-background.cron
 %dir %{_libdir}/packagekit-backend
+%dir %{_libdir}/packagekit-plugins
+%attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin-check-shared-libraries-in-use.so
+%attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin-clear-firmware-requests.so
+%attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin-clear-system-update.so
+%attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin-no-update-process.so
+%attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin-scan-desktop-files.so
+%attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin-systemd-updates.so
+%attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin-update-check-processes.so
+%attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin-update-package-cache.so
+%attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin_scripts.so
 %attr(755,root,root) %{_libdir}/packagekitd
+%attr(755,root,root) %{_libdir}/pk-clear-offline-update
+%attr(755,root,root) %{_libdir}/pk-offline-update
+%attr(755,root,root) %{_libdir}/pk-trigger-offline-update
 %attr(755,root,root) %{_sbindir}/pk-device-rebind
 %dir %{_sysconfdir}/PackageKit
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/PackageKit.conf
@@ -482,6 +447,8 @@ fi
 %dir %{_datadir}/PackageKit/helpers
 %attr(755,root,root) %{_datadir}/PackageKit/pk-upgrade-distro.sh
 %{_datadir}/polkit-1/actions/org.freedesktop.packagekit.policy
+%{_datadir}/dbus-1/interfaces/org.freedesktop.PackageKit.Transaction.xml
+%{_datadir}/dbus-1/interfaces/org.freedesktop.PackageKit.xml
 %{_datadir}/dbus-1/system-services/org.freedesktop.PackageKit.service
 %{_datadir}/mime/packages/packagekit-catalog.xml
 %{_datadir}/mime/packages/packagekit-package-list.xml
@@ -491,6 +458,7 @@ fi
 %{_mandir}/man1/pk-device-rebind.1*
 %{_mandir}/man1/pkgenpack.1*
 %{_mandir}/man1/pkmon.1*
+%{systemdunitdir}/packagekit-offline-update.service
 %dir /var/cache/PackageKit
 %dir /var/cache/PackageKit/downloads
 %dir /var/lib/PackageKit
@@ -499,17 +467,20 @@ fi
 %files libs
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libpackagekit-glib2.so.*.*.*
-%attr(755,root,root) %ghost %{_libdir}/libpackagekit-glib2.so.14
+%attr(755,root,root) %ghost %{_libdir}/libpackagekit-glib2.so.16
 %{_libdir}/girepository-1.0/PackageKitGlib-1.0.typelib
+%{_libdir}/girepository-1.0/PackageKitPlugin-1.0.typelib
 
 %files devel
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libpackagekit-glib2.so
 %{_pkgconfigdir}/packagekit-glib2.pc
+%{_pkgconfigdir}/packagekit-plugin.pc
 %dir %{_includedir}/PackageKit
-%{_includedir}/PackageKit/backend
 %{_includedir}/PackageKit/packagekit-glib2
+%{_includedir}/PackageKit/plugin
 %{_datadir}/gir-1.0/PackageKitGlib-1.0.gir
+%{_datadir}/gir-1.0/PackageKitPlugin-1.0.gir
 
 %files static
 %defattr(644,root,root,755)
@@ -547,33 +518,18 @@ fi
 %endif
 
 %if %{with qt}
-%files qt
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libpackagekit-qt.so.*.*.*
-%attr(755,root,root) %ghost %{_libdir}/libpackagekit-qt.so.14
-
-%files qt-devel
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libpackagekit-qt.so
-%{_pkgconfigdir}/packagekit-qt.pc
-%{_includedir}/PackageKit/packagekit-qt
-%{_datadir}/cmake/Modules/FindQPackageKit.cmake
-
-%files qt-static
-%defattr(644,root,root,755)
-%{_libdir}/libpackagekit-qt.a
-
 %files qt2
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libpackagekit-qt2.so.*.*.*
-%attr(755,root,root) %ghost %{_libdir}/libpackagekit-qt2.so.2
+%attr(755,root,root) %ghost %{_libdir}/libpackagekit-qt2.so.4
 
 %files qt2-devel
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libpackagekit-qt2.so
 %{_pkgconfigdir}/packagekit-qt2.pc
 %{_includedir}/PackageKit/packagekit-qt2
-%{_datadir}/cmake/Modules/FindPackageKitQt2.cmake
+%{_libdir}/cmake/packagekit-qt2/packagekit-qt2-config-version.cmake
+%{_libdir}/cmake/packagekit-qt2/packagekit-qt2-config.cmake
 
 %files qt2-static
 %defattr(644,root,root,755)
@@ -583,10 +539,6 @@ fi
 %files apidocs
 %defattr(644,root,root,755)
 %{_gtkdocdir}/PackageKit
-
-%files docs
-%defattr(644,root,root,755)
-%{_datadir}/PackageKit/website
 
 %files gstreamer-plugin
 %defattr(644,root,root,755)
@@ -602,6 +554,7 @@ fi
 %files gtk3-module
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/gtk-3.0/modules/libpk-gtk-module.so
+%{_libdir}/gnome-settings-daemon-3.0/gtk-modules/pk-gtk-module.desktop
 
 %files -n bash-completion-packagekit
 %defattr(644,root,root,755)
