@@ -22,7 +22,7 @@ Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.xz
-# Source0-md5:	94ca18d084c2033f31bb920562659a95
+# Source0-md5:	584932c90e4c0f7c55f2dd8ede1eb400
 Patch1:		%{name}-PLD.patch
 Patch2:		bashism.patch
 Patch3:		smart-at-fix.patch
