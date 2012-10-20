@@ -18,7 +18,7 @@ Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
 Version:	0.8.4
-Release:	1
+Release:	2
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.xz
@@ -528,6 +528,7 @@ fi
 %attr(755,root,root) %{_libdir}/libpackagekit-qt2.so
 %{_pkgconfigdir}/packagekit-qt2.pc
 %{_includedir}/PackageKit/packagekit-qt2
+%dir %{_libdir}/cmake/packagekit-qt2
 %{_libdir}/cmake/packagekit-qt2/packagekit-qt2-config-version.cmake
 %{_libdir}/cmake/packagekit-qt2/packagekit-qt2-config.cmake
 
