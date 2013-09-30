@@ -1,9 +1,9 @@
 # TODO:
+# - send poldek patch upstream
 # - BASH command-not-found functionality disabled for now as it needs patched bash
 #   (details in bash from Fedora Rawhide)
 #
 # Conditional build:
-%bcond_without	qt	# don't build packagekit-qt library
 %bcond_without	doc	# build without docs
 %bcond_without	gir	# gobject introspection, time to time broken
 %bcond_without	poldek	# build Poldek backend
@@ -17,42 +17,37 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	0.8.4
-Release:	3
+Version:	0.8.11
+Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.xz
-# Source0-md5:	584932c90e4c0f7c55f2dd8ede1eb400
+# Source0-md5:	676ebf95830373b84d5599f4e5039b72
+Patch0:		%{name}-poldek.patch
 Patch1:		%{name}-PLD.patch
 Patch2:		bashism.patch
 Patch3:		smart-at-fix.patch
-Patch4:		%{name}-git.patch
-Patch5:		%{name}-gstreamer.patch
+Patch4:		%{name}-gstreamer.patch
+Patch5:		%{name}-bashcomp.patch
+Patch6:		%{name}-connman.patch
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
-%if %{with qt}
-BuildRequires:	QtCore-devel >= 4.4.0
-BuildRequires:	QtDBus-devel >= 4.4.0
-BuildRequires:	QtGui-devel >= 4.4.0
-BuildRequires:	QtSql-devel >= 4.4.0
-BuildRequires:	QtXml-devel >= 4.4.0
-%endif
 BuildRequires:	autoconf >= 2.65
-BuildRequires:	automake >= 1.11
-%{?with_qt:BuildRequires:	cppunit-devel}
+BuildRequires:	automake >= 1:1.11
+BuildRequires:	connman-devel
 BuildRequires:	dbus-devel >= 1.2.0
 BuildRequires:	dbus-glib-devel >= 0.76
 BuildRequires:	docbook-dtd412-xml
 BuildRequires:	docbook-dtd42-xml
 BuildRequires:	fontconfig-devel
 BuildRequires:	gettext-devel
-BuildRequires:	glib2-devel >= 1:2.22.0
-%{?with_gir:BuildRequires:	gobject-introspection-devel}
+BuildRequires:	glib2-devel >= 1:2.30.0
+%{?with_gir:BuildRequires:	gobject-introspection-devel >= 0.9.9}
 BuildRequires:	gstreamer-devel >= 1.0.0
 BuildRequires:	gstreamer-plugins-base-devel >= 1.0.0
 BuildRequires:	gtk+2-devel >= 2:2.14.0
 BuildRequires:	gtk+3-devel >= 3.0.0
-%{?with_doc:BuildRequires:	gtk-doc >= 1.9}
+%{?with_doc:BuildRequires:	gtk-doc >= 1.11}
 BuildRequires:	intltool >= 0.35.0
 BuildRequires:	libarchive-devel
 BuildRequires:	libtool
@@ -61,13 +56,13 @@ BuildRequires:	pango-devel
 BuildRequires:	pkgconfig
 BuildRequires:	pm-utils
 %{?with_poldek:BuildRequires:	poldek-devel >= 0.30-1.rc6.4}
-BuildRequires:	polkit-devel >= 0.97
-BuildRequires:	python-devel
-%{?with_qt:BuildRequires:	qt4-build >= 4.4.0}
+BuildRequires:	polkit-devel >= 0.98
+BuildRequires:	python-devel >= 1:2.7
 BuildRequires:	readline-devel
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.311
-BuildRequires:	sqlite3-devel
+BuildRequires:	sqlite3-devel >= 3
+BuildRequires:	systemd-devel
 BuildRequires:	tar >= 1:1.22
 BuildRequires:	udev-glib-devel
 BuildRequires:	xz
@@ -99,7 +94,7 @@ zgodnego z wieloma dystrybucjami i architekturami.
 Summary:	packagekit-glib library
 Summary(pl.UTF-8):	Biblioteka packagekit-glib
 Group:		Libraries
-Requires:	glib2 >= 1:2.22.0
+Requires:	glib2 >= 1:2.30.0
 
 %description libs
 packagekit-glib library.
@@ -113,7 +108,7 @@ Summary(pl.UTF-8):	Pliki nagłówkowe biblioteki packagekit-glib
 Group:		Development/Libraries
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	dbus-devel >= 1.2.0
-Requires:	glib2-devel >= 1:2.22.0
+Requires:	glib2-devel >= 1:2.30.0
 Requires:	sqlite3-devel
 
 %description devel
@@ -164,51 +159,6 @@ Provides:	%{name}-backend
 
 %description backend-yum
 A backend for PackageKit to enable yum functionality.
-
-%package qt2
-Summary:	packagekit-qt2 library
-Summary(pl.UTF-8):	Biblioteka packagekit-qt2
-Group:		Libraries
-Obsoletes:	PackageKit-qt < 0.8.4
-Obsoletes:	qpackagekit < 0.4.0
-
-%description qt2
-packagekit-qt2 library.
-
-%description qt2 -l pl.UTF-8
-Biblioteka packagekit-qt2.
-
-%package qt2-devel
-Summary:	Header files for packagekit-qt2 library
-Summary(pl.UTF-8):	Pliki nagłówkowe biblioteki packagekit-qt2
-Group:		Development/Libraries
-Requires:	%{name}-qt2 = %{version}-%{release}
-Requires:	QtCore-devel >= 4.4.0
-Requires:	QtDBus-devel >= 4.4.0
-Requires:	QtGui-devel >= 4.4.0
-Requires:	QtSql-devel >= 4.4.0
-Requires:	QtXml-devel >= 4.4.0
-Obsoletes:	PackageKit-qt-devel < 0.8.4
-Obsoletes:	qpackagekit-devel < 0.4.0
-
-%description qt2-devel
-Header files for packagekit-qt2 library.
-
-%description qt2-devel -l pl.UTF-8
-Pliki nagłówkowe biblioteki packagekit-qt2.
-
-%package qt2-static
-Summary:	Static packagekit-qt2 library
-Summary(pl.UTF-8):	Statyczna biblioteka packagekit-qt2
-Group:		Development/Libraries
-Requires:	%{name}-qt2-devel = %{version}-%{release}
-Obsoletes:	PackageKit-qt-static < 0.8.4
-
-%description qt2-static
-Static packagekit-qt2 library.
-
-%description qt2-static -l pl.UTF-8
-Statyczna biblioteka packagekit-qt2.
 
 %package apidocs
 Summary:	PackageKit library API documentation
@@ -267,7 +217,8 @@ brakującą czcionkę ze skonfigurowanych źródeł PackageKit.
 Summary:	bash-completion for PackageKit
 Summary(pl.UTF-8):	bashowe uzupełnianie nazw dla PackageKit
 Group:		Applications/Shells
-Requires:	bash-completion
+Requires:	%{name} = %{version}-%{release}
+Requires:	bash-completion >= 2
 
 %description -n bash-completion-packagekit
 This package provides bash-completion for PackageKit.
@@ -316,11 +267,13 @@ Wtyczka PackageKit do przeglądarek WWW.
 
 %prep
 %setup -q
+%patch0 -p1
 %patch1 -p1
 %patch2 -p1
 %patch3 -p0
 %patch4 -p1
 %patch5 -p1
+%patch6 -p1
 
 %build
 %if %{with doc}
@@ -333,20 +286,20 @@ Wtyczka PackageKit do przeglądarek WWW.
 %{__autoheader}
 %{__automake}
 %configure \
-	--disable-silent-rules \
-	--disable-dummy \
 	--disable-command-not-found \
+	--disable-dummy \
+	%{!?with_doc:--disable-gtk-doc} \
 	%{!?with_gir:--disable-introspection} \
+	--disable-silent-rules \
+	--enable-bash-completion=%{bash_compdir} \
 	%{__enable_disable browser browser-plugin} \
 	%{__enable_disable poldek} \
 	%{__enable_disable smart} \
 	%{__enable_disable yum} \
-	%{__enable_disable dok gtk-doc}\
-	%{__enable_disable qt} \
-	--with-html-dir=%{_gtkdocdir} \
 	--with-default-backend=%{backend} \
-	--with-security-framework=polkit \
-	--with-mozilla-plugin-dir=%{_browserpluginsdir}
+	--with-html-dir=%{_gtkdocdir} \
+	--with-mozilla-plugin-dir=%{_browserpluginsdir} \
+	--with-security-framework=polkit
 %{__make}
 
 %install
@@ -380,7 +333,7 @@ install -p contrib/pm-utils/95packagekit $RPM_BUILD_ROOT%{_libdir}/pm-utils/slee
 %{__rm} $RPM_BUILD_ROOT%{_datadir}/PackageKit/helpers/yum/yumBackend.py[co]
 %endif
 
-# unsupported
+# outdated copy of it
 %{__rm} -r $RPM_BUILD_ROOT%{_localedir}/it_IT
 
 %py_postclean
@@ -399,9 +352,6 @@ rm -rf $RPM_BUILD_ROOT
 %post	libs -p /sbin/ldconfig
 %postun	libs -p /sbin/ldconfig
 
-%post	qt2 -p /sbin/ldconfig
-%postun	qt2 -p /sbin/ldconfig
-
 %post -n browser-plugin-packagekit
 %update_browser_plugins
 
@@ -412,7 +362,7 @@ fi
 
 %files -f %{name}.lang
 %defattr(644,root,root,755)
-%doc AUTHORS ChangeLog HACKING NEWS README TODO
+%doc AUTHORS HACKING MAINTAINERS NEWS README TODO
 %attr(755,root,root) %{_bindir}/packagekit-bugreport.sh
 %attr(755,root,root) %{_bindir}/pkcon
 %attr(755,root,root) %{_bindir}/pkgenpack
@@ -423,8 +373,8 @@ fi
 %dir %{_libdir}/packagekit-plugins
 %attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin-check-shared-libraries-in-use.so
 %attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin-clear-firmware-requests.so
-%attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin-clear-system-update.so
 %attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin-no-update-process.so
+%attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin-require-restart.so
 %attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin-scan-desktop-files.so
 %attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin-systemd-updates.so
 %attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin-update-check-processes.so
@@ -447,6 +397,7 @@ fi
 %dir %{_datadir}/PackageKit/helpers
 %attr(755,root,root) %{_datadir}/PackageKit/pk-upgrade-distro.sh
 %{_datadir}/polkit-1/actions/org.freedesktop.packagekit.policy
+%{_datadir}/polkit-1/rules.d/org.freedesktop.packagekit.rules
 %{_datadir}/dbus-1/interfaces/org.freedesktop.PackageKit.Transaction.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.PackageKit.xml
 %{_datadir}/dbus-1/system-services/org.freedesktop.PackageKit.service
@@ -517,26 +468,6 @@ fi
 %{_prefix}/lib/yum-plugins/refresh-packagekit.py
 %endif
 
-%if %{with qt}
-%files qt2
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libpackagekit-qt2.so.*.*.*
-%attr(755,root,root) %ghost %{_libdir}/libpackagekit-qt2.so.4
-
-%files qt2-devel
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libpackagekit-qt2.so
-%{_pkgconfigdir}/packagekit-qt2.pc
-%{_includedir}/PackageKit/packagekit-qt2
-%dir %{_libdir}/cmake/packagekit-qt2
-%{_libdir}/cmake/packagekit-qt2/packagekit-qt2-config-version.cmake
-%{_libdir}/cmake/packagekit-qt2/packagekit-qt2-config.cmake
-
-%files qt2-static
-%defattr(644,root,root,755)
-%{_libdir}/libpackagekit-qt2.a
-%endif
-
 %files apidocs
 %defattr(644,root,root,755)
 %{_gtkdocdir}/PackageKit
@@ -559,7 +490,7 @@ fi
 
 %files -n bash-completion-packagekit
 %defattr(644,root,root,755)
-%{_sysconfdir}/bash_completion.d/pk-completion.bash
+%{bash_compdir}/pkcon
 
 %files -n pm-utils-packagekit
 %defattr(644,root,root,755)
