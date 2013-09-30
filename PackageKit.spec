@@ -129,37 +129,6 @@ Static packagekit-glib library.
 %description static -l pl.UTF-8
 Statyczna biblioteka packagekit-glib.
 
-%package backend-poldek
-Summary:	PackageKit Poldek backend
-Group:		Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	poldek >= 0.30-1.rc6.4
-Provides:	%{name}-backend
-Conflicts:	%{name} < 0.6.8-3
-
-%description backend-poldek
-A backend for PackageKit to enable Poldek functionality.
-
-%package backend-smart
-Summary:	PackageKit SMART backend
-Group:		Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	smart
-
-%description backend-smart
-A backend for PackageKit to enable SMART functionality.
-
-%package backend-yum
-Summary:	PackageKit YUM backend
-Group:		Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	python-packagekit = %{version}-%{release}
-Requires:	yum >= 3.2.19
-Provides:	%{name}-backend
-
-%description backend-yum
-A backend for PackageKit to enable yum functionality.
-
 %package apidocs
 Summary:	PackageKit library API documentation
 Summary(pl.UTF-8):	Dokumentacja API biblioteki PackageKit
@@ -171,6 +140,49 @@ PackageKit library API documentation.
 
 %description apidocs -l pl.UTF-8
 Dokumentacja API biblioteki PackageKit.
+
+%package backend-poldek
+Summary:	PackageKit Poldek backend
+Summary(pl.UTF-8):	Backend PackageKit oparty na Poldku
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	poldek >= 0.30-1.rc6.4
+Provides:	%{name}-backend = %{version}-%{release}
+Conflicts:	PackageKit < 0.6.8-3
+
+%description backend-poldek
+A backend for PackageKit to enable Poldek functionality.
+
+%description backend-poldek -l pl.UTF-8
+Backend PackageKit dodający obsługę Poldka.
+
+%package backend-smart
+Summary:	PackageKit SMART backend
+Summary(pl.UTF-8):	Backend PackageKit oparty na zarządcy pakietów SMART
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	smart
+
+%description backend-smart
+A backend for PackageKit to enable SMART functionality.
+
+%description backend-smart -l pl.UTF-8
+Backend PackageKit dodający obsługę zarządcy pakietów SMART.
+
+%package backend-yum
+Summary:	PackageKit YUM backend
+Summary(pl.UTF-8):	Backend PackageKit oparty na Yumie
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	python-packagekit = %{version}-%{release}
+Requires:	yum >= 3.2.19
+Provides:	%{name}-backend = %{version}-%{release}
+
+%description backend-yum
+A backend for PackageKit to enable yum functionality.
+
+%description backend-yum -l pl.UTF-8
+Backend PackageKit dodający obsługę Yuma.
 
 %package gstreamer-plugin
 Summary:	GStreamer codecs installer
@@ -214,17 +226,18 @@ Moduł GTK+ 3.x pozwala każdej aplikacji używającej pango zainstalować
 brakującą czcionkę ze skonfigurowanych źródeł PackageKit.
 
 %package -n bash-completion-packagekit
-Summary:	bash-completion for PackageKit
-Summary(pl.UTF-8):	bashowe uzupełnianie nazw dla PackageKit
+Summary:	Bash completion for PackageKit console commands
+Summary(pl.UTF-8):	Bashowe uzupełnianie parametrów dla poleceń konsolowych PackageKit
 Group:		Applications/Shells
 Requires:	%{name} = %{version}-%{release}
 Requires:	bash-completion >= 2
 
 %description -n bash-completion-packagekit
-This package provides bash-completion for PackageKit.
+This package provides bash-completion for PackageKit console commands.
 
 %description -n bash-completion-packagekit -l pl.UTF-8
-Pakiet ten dostarcza bashowe uzupełnianie nazw dla PackageKit.
+Pakiet ten dostarcza bashowe uzupełnianie parametrów dla poleceń
+konsolowych PackageKit.
 
 %package -n pm-utils-packagekit
 Summary:	PackageKit script for pm-utils
@@ -437,6 +450,10 @@ fi
 %defattr(644,root,root,755)
 %{_libdir}/libpackagekit-glib2.a
 
+%files apidocs
+%defattr(644,root,root,755)
+%{_gtkdocdir}/PackageKit
+
 %if %{with poldek}
 %files backend-poldek
 %defattr(644,root,root,755)
@@ -467,10 +484,6 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/yum/pluginconf.d/refresh-packagekit.conf
 %{_prefix}/lib/yum-plugins/refresh-packagekit.py
 %endif
-
-%files apidocs
-%defattr(644,root,root,755)
-%{_gtkdocdir}/PackageKit
 
 %files gstreamer-plugin
 %defattr(644,root,root,755)
