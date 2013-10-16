@@ -411,6 +411,7 @@ fi
 %attr(755,root,root) %{_datadir}/PackageKit/pk-upgrade-distro.sh
 %{_datadir}/polkit-1/actions/org.freedesktop.packagekit.policy
 %{_datadir}/polkit-1/rules.d/org.freedesktop.packagekit.rules
+# NOTE: dbus interface xmls are used at runtime by packagekitd
 %{_datadir}/dbus-1/interfaces/org.freedesktop.PackageKit.Transaction.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.PackageKit.xml
 %{_datadir}/dbus-1/system-services/org.freedesktop.PackageKit.service
