@@ -411,6 +411,8 @@ fi
 %attr(755,root,root) %{_datadir}/PackageKit/pk-upgrade-distro.sh
 %{_datadir}/polkit-1/actions/org.freedesktop.packagekit.policy
 %{_datadir}/polkit-1/rules.d/org.freedesktop.packagekit.rules
+%{_datadir}/dbus-1/interfaces/org.freedesktop.PackageKit.Transaction.xml
+%{_datadir}/dbus-1/interfaces/org.freedesktop.PackageKit.xml
 %{_datadir}/dbus-1/system-services/org.freedesktop.PackageKit.service
 %{_datadir}/mime/packages/packagekit-catalog.xml
 %{_datadir}/mime/packages/packagekit-package-list.xml
@@ -443,8 +445,6 @@ fi
 %{_includedir}/PackageKit/plugin
 %{_datadir}/gir-1.0/PackageKitGlib-1.0.gir
 %{_datadir}/gir-1.0/PackageKitPlugin-1.0.gir
-%{_datadir}/dbus-1/interfaces/org.freedesktop.PackageKit.Transaction.xml
-%{_datadir}/dbus-1/interfaces/org.freedesktop.PackageKit.xml
 
 %files static
 %defattr(644,root,root,755)
