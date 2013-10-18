@@ -18,7 +18,7 @@ Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
 Version:	0.8.11
-Release:	2
+Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.xz
@@ -321,8 +321,6 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
 
-mv $RPM_BUILD_ROOT/etc/cron.daily/packagekit-background{.cron,}
-
 # use pk-gstreamer-install as codec installer
 ln -s pk-gstreamer-install $RPM_BUILD_ROOT%{_libdir}/gst-install-plugins-helper
 
@@ -383,7 +381,7 @@ fi
 %attr(755,root,root) %{_bindir}/pkgenpack
 %attr(755,root,root) %{_bindir}/pkmon
 %attr(755,root,root) %{_bindir}/pk-debuginfo-install
-%attr(750,root,root) /etc/cron.daily/packagekit-background
+%attr(750,root,root) /etc/cron.daily/packagekit-background.cron
 %dir %{_libdir}/packagekit-backend
 %dir %{_libdir}/packagekit-plugins
 %attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin-check-shared-libraries-in-use.so
