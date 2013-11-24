@@ -1,15 +1,15 @@
 # TODO:
-# - send poldek patch upstream
 # - BASH command-not-found functionality disabled for now as it needs patched bash
 #   (details in bash from Fedora Rawhide)
 #
 # Conditional build:
-%bcond_without	doc	# build without docs
-%bcond_without	gir	# gobject introspection, time to time broken
-%bcond_without	poldek	# build Poldek backend
-%bcond_without	smart	# build SMART backend
-%bcond_without	yum	# build YUM backend
-%bcond_with	browser	# build browser plugin (patrys says: it's flawed by concept)
+%bcond_without	doc		# build without docs
+%bcond_without	introspection	# gobject introspection, time to time broken
+%bcond_without	poldek		# Poldek backend
+%bcond_without	smart		# SMART backend
+%bcond_without	yum		# YUM backend
+%bcond_with	zif		# Zif backend
+%bcond_with	browser		# browser plugin (patrys says: it's flawed by concept)
 
 # default backend, configurable at runtime
 %define		backend	poldek
@@ -17,13 +17,12 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	0.8.11
-Release:	3
+Version:	0.8.13
+Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.xz
-# Source0-md5:	676ebf95830373b84d5599f4e5039b72
-Patch0:		%{name}-poldek.patch
+# Source0-md5:	c8f7207cca4fcdb3d62d012b67c2f319
 Patch1:		%{name}-PLD.patch
 Patch2:		bashism.patch
 Patch3:		smart-at-fix.patch
@@ -41,8 +40,8 @@ BuildRequires:	docbook-dtd412-xml
 BuildRequires:	docbook-dtd42-xml
 BuildRequires:	fontconfig-devel
 BuildRequires:	gettext-devel
-BuildRequires:	glib2-devel >= 1:2.30.0
-%{?with_gir:BuildRequires:	gobject-introspection-devel >= 0.9.9}
+BuildRequires:	glib2-devel >= 1:2.32.0
+%{?with_introspection:BuildRequires:	gobject-introspection-devel >= 0.9.9}
 BuildRequires:	gstreamer-devel >= 1.0.0
 BuildRequires:	gstreamer-plugins-base-devel >= 1.0.0
 BuildRequires:	gtk+2-devel >= 2:2.14.0
@@ -66,6 +65,7 @@ BuildRequires:	systemd-devel
 BuildRequires:	tar >= 1:1.22
 BuildRequires:	udev-glib-devel
 BuildRequires:	xz
+%{?with_zif:BuildRequires:	zif >= 0.2.8}
 %if %{with browser}
 BuildRequires:	cairo-devel
 BuildRequires:	nspr-devel >= 4.8
@@ -76,7 +76,7 @@ Requires:	%{name}-backend
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	ConsoleKit-x11
 Requires:	crondaemon
-Requires:	polkit >= 0.92
+Requires:	polkit >= 0.98
 Obsoletes:	PackageKit-docs < 0.8.4
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -94,7 +94,7 @@ zgodnego z wieloma dystrybucjami i architekturami.
 Summary:	packagekit-glib library
 Summary(pl.UTF-8):	Biblioteka packagekit-glib
 Group:		Libraries
-Requires:	glib2 >= 1:2.30.0
+Requires:	glib2 >= 1:2.32.0
 
 %description libs
 packagekit-glib library.
@@ -108,7 +108,7 @@ Summary(pl.UTF-8):	Pliki nagłówkowe biblioteki packagekit-glib
 Group:		Development/Libraries
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	dbus-devel >= 1.2.0
-Requires:	glib2-devel >= 1:2.30.0
+Requires:	glib2-devel >= 1:2.32.0
 Requires:	sqlite3-devel
 
 %description devel
@@ -183,6 +183,20 @@ A backend for PackageKit to enable yum functionality.
 
 %description backend-yum -l pl.UTF-8
 Backend PackageKit dodający obsługę Yuma.
+
+%package backend-zif
+Summary:	PackageKit Zif backend
+Summary(pl.UTF-8):	Backend PackageKit oparty na Zifie
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	zif >= 0.2.8
+Provides:	%{name}-backend = %{version}-%{release}
+
+%description backend-zif
+A backend for PackageKit to enable Zif functionality.
+
+%description backend-zif -l pl.UTF-8
+Backend PackageKit dodający obsługę Zifa.
 
 %package gstreamer-plugin
 Summary:	GStreamer codecs installer
@@ -280,7 +294,6 @@ Wtyczka PackageKit do przeglądarek WWW.
 
 %prep
 %setup -q
-%patch0 -p1
 %patch1 -p1
 %patch2 -p1
 %patch3 -p0
@@ -302,13 +315,14 @@ Wtyczka PackageKit do przeglądarek WWW.
 	--disable-command-not-found \
 	--disable-dummy \
 	%{!?with_doc:--disable-gtk-doc} \
-	%{!?with_gir:--disable-introspection} \
+	%{!?with_introspection:--disable-introspection} \
 	--disable-silent-rules \
 	--enable-bash-completion=%{bash_compdir} \
 	%{__enable_disable browser browser-plugin} \
 	%{__enable_disable poldek} \
 	%{__enable_disable smart} \
 	%{__enable_disable yum} \
+	%{__enable_disable zif} \
 	--with-default-backend=%{backend} \
 	--with-html-dir=%{_gtkdocdir} \
 	--with-mozilla-plugin-dir=%{_browserpluginsdir} \
@@ -346,8 +360,10 @@ install -p contrib/pm-utils/95packagekit $RPM_BUILD_ROOT%{_libdir}/pm-utils/slee
 %{__rm} $RPM_BUILD_ROOT%{_datadir}/PackageKit/helpers/yum/yumBackend.py[co]
 %endif
 
-# outdated copy of it
-%{__rm} -r $RPM_BUILD_ROOT%{_localedir}/it_IT
+# outdated copies of bg,it
+%{__rm} -r $RPM_BUILD_ROOT%{_localedir}/{bg_BG,it_IT}
+# fa_IR uses short dir name
+%{__mv} $RPM_BUILD_ROOT%{_localedir}/{fa_IR,fa}
 
 %py_postclean
 
@@ -420,6 +436,7 @@ fi
 %{_mandir}/man1/pk-device-rebind.1*
 %{_mandir}/man1/pkgenpack.1*
 %{_mandir}/man1/pkmon.1*
+%{systemdunitdir}/packagekit.service
 %{systemdunitdir}/packagekit-offline-update.service
 %dir /var/cache/PackageKit
 %dir /var/cache/PackageKit/downloads
@@ -486,6 +503,15 @@ fi
 # yum plugin
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/yum/pluginconf.d/refresh-packagekit.conf
 %{_prefix}/lib/yum-plugins/refresh-packagekit.py
+%endif
+
+%if %{with zif}
+%files backend-zif
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_zif.so
+%dir %{_datadir}/PackageKit/helpers/zif
+%{_datadir}/PackageKit/helpers/zif/licenses.txt
+%{_datadir}/PackageKit/helpers/zif/zif-comps-groups.conf
 %endif
 
 %files gstreamer-plugin
