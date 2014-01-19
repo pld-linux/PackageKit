@@ -8,7 +8,7 @@
 %bcond_without	poldek		# Poldek backend
 %bcond_without	smart		# SMART backend
 %bcond_without	yum		# YUM backend
-%bcond_with	zif		# Zif backend
+%bcond_with	hawkey		# Hawkey backend
 %bcond_with	browser		# browser plugin (patrys says: it's flawed by concept)
 
 # default backend, configurable at runtime
@@ -17,14 +17,13 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	0.8.13
+Version:	0.8.15
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.xz
-# Source0-md5:	c8f7207cca4fcdb3d62d012b67c2f319
-Patch1:		%{name}-PLD.patch
-Patch2:		bashism.patch
+# Source0-md5:	147e35b64e3e3b9ca8b2baefb37531f6
+Patch0:		%{name}-hawkey-rpm5.patch
 Patch3:		smart-at-fix.patch
 Patch4:		%{name}-gstreamer.patch
 Patch5:		%{name}-bashcomp.patch
@@ -47,17 +46,19 @@ BuildRequires:	gstreamer-plugins-base-devel >= 1.0.0
 BuildRequires:	gtk+2-devel >= 2:2.14.0
 BuildRequires:	gtk+3-devel >= 3.0.0
 %{?with_doc:BuildRequires:	gtk-doc >= 1.11}
+%{?with_hawkey:BuildRequires:	hawkey-devel >= 0.4.5}
 BuildRequires:	intltool >= 0.35.0
 BuildRequires:	libarchive-devel
+%{?with_hawkey:BuildRequires:	librepo-devel}
 BuildRequires:	libtool
 BuildRequires:	libxslt-progs
 BuildRequires:	pango-devel
 BuildRequires:	pkgconfig
-BuildRequires:	pm-utils
 %{?with_poldek:BuildRequires:	poldek-devel >= 0.30-1.rc6.4}
 BuildRequires:	polkit-devel >= 0.98
 BuildRequires:	python-devel >= 1:2.7
 BuildRequires:	readline-devel
+%{?with_hawkey:BuildRequires:	rpm-devel >= 4.11.0}
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.311
 BuildRequires:	sqlite3-devel >= 3
@@ -65,7 +66,6 @@ BuildRequires:	systemd-devel
 BuildRequires:	tar >= 1:1.22
 BuildRequires:	udev-glib-devel
 BuildRequires:	xz
-%{?with_zif:BuildRequires:	zif >= 0.2.8}
 %if %{with browser}
 BuildRequires:	cairo-devel
 BuildRequires:	nspr-devel >= 4.8
@@ -78,6 +78,7 @@ Requires:	ConsoleKit-x11
 Requires:	crondaemon
 Requires:	polkit >= 0.98
 Obsoletes:	PackageKit-docs < 0.8.4
+Obsoletes:	pm-utils-packagekit
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -141,6 +142,21 @@ PackageKit library API documentation.
 %description apidocs -l pl.UTF-8
 Dokumentacja API biblioteki PackageKit.
 
+%package backend-hawkey
+Summary:	PackageKit Hawkey backend
+Summary(pl.UTF-8):	Backend PackageKit oparty na Hawkeyu
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	hawkey >= 0.4.5
+Provides:	%{name}-backend = %{version}-%{release}
+Obsoletes:	PackageKit-backend-zif
+
+%description backend-hawkey
+A backend for PackageKit to enable Hawkey functionality.
+
+%description backend-hawkey -l pl.UTF-8
+Backend PackageKit dodający obsługę Hawkeya.
+
 %package backend-poldek
 Summary:	PackageKit Poldek backend
 Summary(pl.UTF-8):	Backend PackageKit oparty na Poldku
@@ -183,20 +199,6 @@ A backend for PackageKit to enable yum functionality.
 
 %description backend-yum -l pl.UTF-8
 Backend PackageKit dodający obsługę Yuma.
-
-%package backend-zif
-Summary:	PackageKit Zif backend
-Summary(pl.UTF-8):	Backend PackageKit oparty na Zifie
-Group:		Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	zif >= 0.2.8
-Provides:	%{name}-backend = %{version}-%{release}
-
-%description backend-zif
-A backend for PackageKit to enable Zif functionality.
-
-%description backend-zif -l pl.UTF-8
-Backend PackageKit dodający obsługę Zifa.
 
 %package gstreamer-plugin
 Summary:	GStreamer codecs installer
@@ -253,18 +255,6 @@ This package provides bash-completion for PackageKit console commands.
 Pakiet ten dostarcza bashowe uzupełnianie parametrów dla poleceń
 konsolowych PackageKit.
 
-%package -n pm-utils-packagekit
-Summary:	PackageKit script for pm-utils
-Summary(pl.UTF-8):	Skrypt PackageKit dla pm-utils
-Group:		Applications/System
-Requires:	pm-utils
-
-%description -n pm-utils-packagekit
-PackageKit script for pm-utils.
-
-%description -n pm-utils-packagekit -l pl.UTF-8
-Skrypt PackageKit dla pm-utils.
-
 %package -n python-packagekit
 Summary:	PackageKit Python bindings
 Summary(pl.UTF-8):	Wiązania PackageKit dla Pythona
@@ -294,8 +284,7 @@ Wtyczka PackageKit do przeglądarek WWW.
 
 %prep
 %setup -q
-%patch1 -p1
-%patch2 -p1
+%patch0 -p1
 %patch3 -p0
 %patch4 -p1
 %patch5 -p1
@@ -319,10 +308,10 @@ Wtyczka PackageKit do przeglądarek WWW.
 	--disable-silent-rules \
 	--enable-bash-completion=%{bash_compdir} \
 	%{__enable_disable browser browser-plugin} \
+	%{__enable_disable hawkey} \
 	%{__enable_disable poldek} \
 	%{__enable_disable smart} \
 	%{__enable_disable yum} \
-	%{__enable_disable zif} \
 	--with-default-backend=%{backend} \
 	--with-html-dir=%{_gtkdocdir} \
 	--with-mozilla-plugin-dir=%{_browserpluginsdir} \
@@ -337,9 +326,6 @@ rm -rf $RPM_BUILD_ROOT
 
 # use pk-gstreamer-install as codec installer
 ln -s pk-gstreamer-install $RPM_BUILD_ROOT%{_libdir}/gst-install-plugins-helper
-
-install -d $RPM_BUILD_ROOT%{_libdir}/pm-utils/sleep.d
-install -p contrib/pm-utils/95packagekit $RPM_BUILD_ROOT%{_libdir}/pm-utils/sleep.d
 
 %{__rm} $RPM_BUILD_ROOT%{_libdir}/gtk-{2,3}.0/modules/*.{la,a}
 %{__rm} $RPM_BUILD_ROOT%{_libdir}/packagekit-backend/*.{la,a}
@@ -394,26 +380,19 @@ fi
 %doc AUTHORS HACKING MAINTAINERS NEWS README TODO
 %attr(755,root,root) %{_bindir}/packagekit-bugreport.sh
 %attr(755,root,root) %{_bindir}/pkcon
-%attr(755,root,root) %{_bindir}/pkgenpack
 %attr(755,root,root) %{_bindir}/pkmon
 %attr(755,root,root) %{_bindir}/pk-debuginfo-install
 %attr(750,root,root) /etc/cron.daily/packagekit-background.cron
 %dir %{_libdir}/packagekit-backend
 %dir %{_libdir}/packagekit-plugins
-%attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin-check-shared-libraries-in-use.so
-%attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin-clear-firmware-requests.so
-%attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin-no-update-process.so
-%attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin-require-restart.so
 %attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin-scan-desktop-files.so
 %attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin-systemd-updates.so
-%attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin-update-check-processes.so
 %attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin-update-package-cache.so
 %attr(755,root,root) %{_libdir}/packagekit-plugins/libpk_plugin_scripts.so
 %attr(755,root,root) %{_libdir}/packagekitd
 %attr(755,root,root) %{_libdir}/pk-clear-offline-update
 %attr(755,root,root) %{_libdir}/pk-offline-update
 %attr(755,root,root) %{_libdir}/pk-trigger-offline-update
-%attr(755,root,root) %{_sbindir}/pk-device-rebind
 %dir %{_sysconfdir}/PackageKit
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/PackageKit.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/Vendor.conf
@@ -428,13 +407,8 @@ fi
 %{_datadir}/polkit-1/actions/org.freedesktop.packagekit.policy
 %{_datadir}/polkit-1/rules.d/org.freedesktop.packagekit.rules
 %{_datadir}/dbus-1/system-services/org.freedesktop.PackageKit.service
-%{_datadir}/mime/packages/packagekit-catalog.xml
-%{_datadir}/mime/packages/packagekit-package-list.xml
-%{_datadir}/mime/packages/packagekit-servicepack.xml
 %{_mandir}/man1/pkcon.1*
 %{_mandir}/man1/pk-debuginfo-install.1*
-%{_mandir}/man1/pk-device-rebind.1*
-%{_mandir}/man1/pkgenpack.1*
 %{_mandir}/man1/pkmon.1*
 %{systemdunitdir}/packagekit.service
 %{systemdunitdir}/packagekit-offline-update.service
@@ -474,6 +448,12 @@ fi
 %defattr(644,root,root,755)
 %{_gtkdocdir}/PackageKit
 
+%if %{with hawkey}
+%files backend-hawkey
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_hawkey.so
+%endif
+
 %if %{with poldek}
 %files backend-poldek
 %defattr(644,root,root,755)
@@ -491,7 +471,6 @@ fi
 %if %{with yum}
 %files backend-yum
 %defattr(644,root,root,755)
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/Yum.conf
 %attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_yum.so
 %dir %{_datadir}/PackageKit/helpers/yum
 %{_datadir}/PackageKit/helpers/yum/licenses.txt
@@ -503,15 +482,6 @@ fi
 # yum plugin
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/yum/pluginconf.d/refresh-packagekit.conf
 %{_prefix}/lib/yum-plugins/refresh-packagekit.py
-%endif
-
-%if %{with zif}
-%files backend-zif
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_zif.so
-%dir %{_datadir}/PackageKit/helpers/zif
-%{_datadir}/PackageKit/helpers/zif/licenses.txt
-%{_datadir}/PackageKit/helpers/zif/zif-comps-groups.conf
 %endif
 
 %files gstreamer-plugin
@@ -533,10 +503,6 @@ fi
 %files -n bash-completion-packagekit
 %defattr(644,root,root,755)
 %{bash_compdir}/pkcon
-
-%files -n pm-utils-packagekit
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/pm-utils/sleep.d/95packagekit
 
 %files -n python-packagekit
 %defattr(644,root,root,755)

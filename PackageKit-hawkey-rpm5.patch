@@ -1,0 +1,514 @@
+--- PackageKit-0.8.15/backends/hawkey/hif-keyring.c.orig	2013-12-05 14:36:16.000000000 +0100
++++ PackageKit-0.8.15/backends/hawkey/hif-keyring.c	2014-01-19 17:21:44.407060059 +0100
+@@ -27,8 +27,12 @@
+ 
+ #include <stdlib.h>
+ #include <glib.h>
+-#include <rpm/rpmlib.h>
++#include "rpmorg-compat.h"
++#include <rpm/rpmcli.h>
++#include <rpm/rpmio.h>
++#include <rpm/rpmps.h>
+ #include <rpm/rpmts.h>
++#include <rpm/rpmpgp.h>
+ 
+ #include "hif-keyring.h"
+ #include "hif-utils.h"
+@@ -37,17 +41,14 @@
+  * hif_keyring_add_public_key:
+  **/
+ gboolean
+-hif_keyring_add_public_key (rpmKeyring keyring,
++hif_keyring_add_public_key (const rpmts ts,
+ 			    const gchar *filename,
+ 			    GError **error)
+ {
+ 	gboolean ret = TRUE;
+-	gchar *data = NULL;
+ 	gint rc;
+ 	gsize len;
+ 	pgpArmor armor;
+-	pgpDig dig = NULL;
+-	rpmPubkey pubkey = NULL;
+ 	uint8_t *pkt = NULL;
+ 
+ 	/* ignore symlinks and directories */
+@@ -56,13 +57,8 @@ hif_keyring_add_public_key (rpmKeyring k
+ 	if (g_file_test (filename, G_FILE_TEST_IS_SYMLINK))
+ 		goto out;
+ 
+-	/* get data */
+-	ret = g_file_get_contents (filename, &data, &len, error);
+-	if (!ret)
+-		goto out;
+-
+ 	/* rip off the ASCII armor and parse it */
+-	armor = pgpParsePkts (data, &pkt, &len);
++	armor = pgpReadPkts (filename, &pkt, &len);
+ 	if (armor < 0) {
+ 		ret = FALSE;
+ 		g_set_error (error,
+@@ -85,7 +81,7 @@ hif_keyring_add_public_key (rpmKeyring k
+ 	}
+ 
+ 	/* test each one */
+-	pubkey = rpmPubkeyNew (pkt, len);
++/*	pubkey = rpmPubkeyNew (pkt, len);
+ 	if (pubkey == NULL) {
+ 		ret = FALSE;
+ 		g_set_error (error,
+@@ -94,19 +90,19 @@ hif_keyring_add_public_key (rpmKeyring k
+ 			     "failed to parse public key for %s",
+ 			     filename);
+ 		goto out;
+-	}
++	} */
+ 
+ 	/* does the key exist in the keyring */
+-	dig = rpmPubkeyDig (pubkey);
++/*	dig = rpmPubkeyDig (pubkey);
+ 	rc = rpmKeyringLookup (keyring, dig);
+ 	if (rc == RPMRC_OK) {
+ 		ret = TRUE;
+ 		g_debug ("%s is already present", filename);
+ 		goto out;
+-	}
++	} */
+ 
+ 	/* add to rpmdb automatically, without a prompt */
+-	rc = rpmKeyringAddKey (keyring, pubkey);
++	rc = rpmcliImportPubkey (ts, pkt, len);
+ 	if (rc == 1) {
+ 		ret = TRUE;
+ 		g_debug ("%s is already added", filename);
+@@ -128,11 +124,6 @@ hif_keyring_add_public_key (rpmKeyring k
+ out:
+ 	if (pkt != NULL)
+ 		free (pkt); /* yes, free() */
+-	if (pubkey != NULL)
+-		rpmPubkeyFree (pubkey);
+-	if (dig != NULL)
+-		pgpFreeDig (dig);
+-	g_free (data);
+ 	return ret;
+ }
+ 
+@@ -140,7 +131,7 @@ out:
+  * hif_keyring_add_public_keys:
+  **/
+ gboolean
+-hif_keyring_add_public_keys (rpmKeyring keyring, GError **error)
++hif_keyring_add_public_keys (rpmts ts, GError **error)
+ {
+ 	const gchar *filename;
+ 	const gchar *gpg_dir = "/etc/pki/rpm-gpg";
+@@ -159,7 +150,7 @@ hif_keyring_add_public_keys (rpmKeyring
+ 		if (filename == NULL)
+ 			break;
+ 		path_tmp = g_build_filename (gpg_dir, filename, NULL);
+-		ret = hif_keyring_add_public_key (keyring, path_tmp, error);
++		ret = hif_keyring_add_public_key (ts, path_tmp, error);
+ 		g_free (path_tmp);
+ 	} while (ret);
+ out:
+@@ -172,8 +163,7 @@ out:
+  * hif_keyring_check_untrusted_file:
+  */
+ gboolean
+-hif_keyring_check_untrusted_file (rpmKeyring keyring,
+-				  const gchar *filename,
++hif_keyring_check_untrusted_file (const gchar *filename,
+ 				  GError **error)
+ {
+ 	FD_t fd = NULL;
+@@ -216,10 +206,10 @@ hif_keyring_check_untrusted_file (rpmKey
+ 	}
+ 
+ 	/* convert and upscale */
+-	headerConvert (hdr, HEADERCONV_RETROFIT_V3);
++	/* headerConvert (hdr, HEADERCONV_RETROFIT_V3); */
+ 
+ 	/* get RSA key */
+-	td = rpmtdNew ();
++	td = malloc (sizeof (*td) );
+ 	rc = headerGet (hdr,
+ 			RPMTAG_RSAHEADER,
+ 			td,
+@@ -243,7 +233,7 @@ hif_keyring_check_untrusted_file (rpmKey
+ 	}
+ 
+ 	/* make it into a digest */
+-	dig = pgpNewDig ();
++	dig = rpmtsDig (ts);
+ 	rc = pgpPrtPkts (td->data, td->count, dig, 0);
+ 	if (rc != 0) {
+ 		g_set_error (error,
+@@ -255,7 +245,7 @@ hif_keyring_check_untrusted_file (rpmKey
+ 	}
+ 
+ 	/* does the key exist in the keyring */
+-	rc = rpmKeyringLookup (keyring, dig);
++	rc = rpmtsFindPubkey (ts, dig);
+ 	if (rc != RPMRC_OK) {
+ 		g_set_error_literal (error,
+ 				     HIF_ERROR,
+@@ -269,18 +259,18 @@ hif_keyring_check_untrusted_file (rpmKey
+ 	ret = TRUE;
+ out:
+ 	if (dig != NULL)
+-		pgpFreeDig (dig);
++		dig = pgpDigFree (dig);
+ 	if (td != NULL) {
+ 		rpmtdFreeData (td);
+-		rpmtdFree (td);
++		free (td);
+ 	}
+ 	if (ts != NULL)
+-		rpmtsFree (ts);
++		ts = rpmtsFree (ts);
+ 	if (hdr != NULL)
+-		headerFree (hdr);
++		hdr = headerFree (hdr);
+ 	if (fd != NULL)
+ 		Fclose (fd);
+ 	if (header != NULL)
+-		headerFree (header);
++		header = headerFree (header);
+ 	return ret;
+ }
+--- PackageKit-0.8.15/backends/hawkey/hif-keyring.h.orig	2013-12-05 14:36:16.000000000 +0100
++++ PackageKit-0.8.15/backends/hawkey/hif-keyring.h	2014-01-19 16:52:38.130466677 +0100
+@@ -24,14 +24,14 @@
+ 
+ #include <glib.h>
+ 
+-#include <rpm/rpmkeyring.h>
++#include <rpm/rpmts.h>
+ 
+-gboolean	 hif_keyring_add_public_key	(rpmKeyring		 keyring,
++gboolean	 hif_keyring_add_public_key	(const rpmts		 ts,
+ 						 const gchar		*filename,
+ 						 GError			**error);
+-gboolean	 hif_keyring_add_public_keys	(rpmKeyring		 keyring,
++gboolean	 hif_keyring_add_public_keys	(rpmts			 ts,
+ 						 GError			**error);
+-gboolean	 hif_keyring_check_untrusted_file (rpmKeyring		 keyring,
++gboolean	 hif_keyring_check_untrusted_file (
+ 						 const gchar		*filename,
+ 						 GError			**error);
+ 
+--- PackageKit-0.8.15/backends/hawkey/hif-rpmts.c.orig	2013-12-12 16:08:37.000000000 +0100
++++ PackageKit-0.8.15/backends/hawkey/hif-rpmts.c	2014-01-19 17:35:21.507025769 +0100
+@@ -26,9 +26,11 @@
+ #endif
+ 
+ #include <glib.h>
+-#include <rpm/rpmlib.h>
++#include <rpm/rpm46compat.h>
++#include <rpm/pkgio.h>
+ #include <rpm/rpmlog.h>
+ #include <rpm/rpmdb.h>
++#include <rpm/rpmio.h>
+ 
+ #include "hif-rpmts.h"
+ #include "hif-utils.h"
+@@ -212,10 +214,17 @@ hif_rpmts_get_problem_str (rpmProblem pr
+ 				       diskspace,
+ 				       generic_str);
+ 		break;
+-	case RPMPROB_OBSOLETES:
+-		str = g_strdup_printf ("package %s is obsoleted by %s",
+-				       pkg_nevr,
+-				       pkg_nevr_alt);
++	case RPMPROB_RDONLY:
++		str = g_strdup_printf ("tried to install package on read-only filesystem");
++		break;
++	case RPMPROB_BADPRETRANS:
++		str = g_strdup_printf ("bad %%pretrans?"); // unimplemented acc. to rpmps.h
++		break;
++	case RPMPROB_BADPLATFORM:
++		str = g_strdup_printf ("package %s is for a different platform", pkg_nevr);
++		break;
++	case RPMPROB_NOREPACKAGE:
++		str = g_strdup_printf ("re-packaged package %s is missing", pkg_nevr);
+ 		break;
+ 	}
+ 	return str;
+@@ -273,7 +282,7 @@ hif_rpmts_look_for_problems (rpmts ts, G
+ out:
+ 	if (string != NULL)
+ 		g_string_free (string, TRUE);
+-	rpmpsFree (probs);
++	probs = rpmpsFree (probs);
+ 	return ret;
+ }
+ 
+@@ -349,7 +358,7 @@ hif_rpmts_find_package (rpmts ts, HyPack
+ 	}
+ 
+ 	/* success */
+-	headerLink (hdr);
++	hdr = headerLink (hdr);
+ out:
+ 	rpmlogSetCallback (NULL, NULL);
+ 	if (rpm_error != NULL)
+@@ -388,6 +397,6 @@ hif_rpmts_add_remove_pkg (rpmts ts, HyPa
+ 	}
+ out:
+ 	if (hdr != NULL)
+-		headerFree (hdr);
++		hdr = headerFree (hdr);
+ 	return ret;
+ }
+--- PackageKit-0.8.15/backends/hawkey/hif-state.c.orig	2013-12-12 16:07:44.000000000 +0100
++++ PackageKit-0.8.15/backends/hawkey/hif-state.c	2014-01-19 17:36:10.177023726 +0100
+@@ -28,7 +28,6 @@
+ #include <glib.h>
+ #include <glib-unix.h>
+ #include <signal.h>
+-#include <rpm/rpmsq.h>
+ 
+ #include "hif-utils.h"
+ #include "hif-state.h"
+--- PackageKit-0.8.15/backends/hawkey/pk-backend-hawkey.c.orig	2013-12-17 15:20:05.000000000 +0100
++++ PackageKit-0.8.15/backends/hawkey/pk-backend-hawkey.c	2014-01-19 19:40:01.683378522 +0100
+@@ -39,12 +39,14 @@
+ #include <hawkey/version.h>
+ #include <hawkey/util.h>
+ #include <librepo/librepo.h>
+-#include <rpm/rpmlib.h>
++#include "rpmorg-compat.h"
+ #include <rpm/rpmdb.h>
++#include <rpm/rpmio.h>
+ #include <rpm/rpmlog.h>
++#include <rpm/rpmmacro.h>
+ #include <rpm/rpmps.h>
++#include <rpm/rpmrc.h>
+ #include <rpm/rpmts.h>
+-#include <rpm/rpmkeyring.h>
+ 
+ #include "hif-db.h"
+ #include "hif-goal.h"
+@@ -77,7 +79,6 @@ typedef struct {
+ 	HifDb		*db;
+ 	HifState	*state;
+ 	rpmts		 ts;
+-	rpmKeyring	 keyring;
+ 	GPtrArray	*packages_to_download;
+ 	PkBitfield	 transaction_flags;
+ 	HyGoal		 goal;
+@@ -286,29 +287,32 @@ pk_backend_initialize (PkBackend *backen
+ 			       "info");
+ 
+ 	/* get info from RPM */
+-	rpmGetOsInfo (&value, NULL);
++	value = rpmExpand ("%{_target_os}", NULL);
+ 	g_key_file_set_string (priv->config,
+ 			       HIF_CONFIG_GROUP_NAME,
+ 			       "Hawkey::OsInfo", value);
+-	rpmGetArchInfo (&value, NULL);
++	value = rpmExpand ("%{_target_cpu}", NULL);
+ 	g_key_file_set_string (priv->config,
+ 			       HIF_CONFIG_GROUP_NAME,
+ 			       "Hawkey::ArchInfo", value);
+-	rpmGetArchInfo (&value, NULL);
+ 	priv->native_arches = g_new0 (gchar *, 3);
+ 	priv->native_arches[0] = g_strdup (value);
+ 	priv->native_arches[1] = g_strdup ("noarch");
+-	if (g_strcmp0 (value, "i486") == 0 ||
+-	    g_strcmp0 (value, "i586") == 0 ||
+-	    g_strcmp0 (value, "i686") == 0) {
++	if (strcmp (value, "i486") == 0 ||
++	    strcmp (value, "i586") == 0 ||
++	    strcmp (value, "i686") == 0 ||
++	    strcmp (value, "athlon") == 0 ||
++	    strcmp (value, "pentium2") == 0 ||
++	    strcmp (value, "pentium3") == 0 ||
++	    strcmp (value, "pentium4") == 0) {
+ 		value = "i386";
+-	} else if (g_strcmp0 (value, "armv7l") == 0 ||
+-		   g_strcmp0 (value, "armv6l") == 0 ||
+-		   g_strcmp0 (value, "armv5tejl") == 0 ||
+-		   g_strcmp0 (value, "armv5tel") == 0) {
++	} else if (strcmp (value, "armv7l") == 0 ||
++	           strcmp (value, "armv6l") == 0 ||
++	           strcmp (value, "armv5tejl") == 0 ||
++	           strcmp (value, "armv5tel") == 0) {
+ 		value = "arm";
+-	} else if (g_strcmp0 (value, "armv7hnl") == 0 ||
+-		 g_strcmp0 (value, "armv7hl") == 0) {
++	} else if (strcmp (value, "armv7hnl") == 0 ||
++		 strcmp (value, "armv7hl") == 0) {
+ 		value = "armhfp";
+ 	}
+ 	g_key_file_set_string (priv->config,
+@@ -476,7 +480,6 @@ pk_backend_start_job (PkBackend *backend
+ 
+ 	/* setup RPM */
+ 	job_data->ts = rpmtsCreate ();
+-	job_data->keyring = rpmtsGetKeyring (job_data->ts, 1);
+ 
+ 	/* HifState */
+ 	job_data->packages_to_download =
+@@ -546,8 +549,7 @@ pk_backend_stop_job (PkBackend *backend,
+ 	g_ptr_array_unref (job_data->packages_to_download);
+ 	if (job_data->goal != NULL)
+ 		hy_goal_free (job_data->goal);
+-	rpmtsFree (job_data->ts);
+-	rpmKeyringFree (job_data->keyring);
++	job_data->ts = rpmtsFree (job_data->ts);
+ 	g_object_unref (job_data->db);
+ 	g_free (job_data);
+ 	pk_backend_job_set_user_data (job, NULL);
+@@ -1911,7 +1913,7 @@ out:
+  * pk_backend_transaction_check_untrusted:
+  */
+ static gboolean
+-pk_backend_transaction_check_untrusted (rpmKeyring keyring,
++pk_backend_transaction_check_untrusted (
+ 					GPtrArray *sources,
+ 					HyGoal goal,
+ 					GError **error)
+@@ -1957,7 +1959,7 @@ pk_backend_transaction_check_untrusted (
+ 		}
+ 
+ 		/* check file */
+-		ret = hif_keyring_check_untrusted_file (keyring,
++		ret = hif_keyring_check_untrusted_file (
+ 							filename,
+ 							error);
+ 		if (!ret)
+@@ -2045,15 +2047,6 @@ hif_commit_rpmcb_type_to_string (const r
+ 	case RPMCALLBACK_SCRIPT_ERROR:
+ 		type = "script-error";
+ 		break;
+-	case RPMCALLBACK_SCRIPT_START:
+-		type = "script-start";
+-		break;
+-	case RPMCALLBACK_SCRIPT_STOP:
+-		type = "script-stop";
+-		break;
+-	case RPMCALLBACK_INST_STOP:
+-		type = "install-stop";
+-		break;
+ 	}
+ 	return type;
+ }
+@@ -2329,7 +2322,6 @@ hif_commit_ts_progress_cb (const void *a
+ 		/* don't do anything */
+ 		break;
+ 
+-	case RPMCALLBACK_INST_STOP:
+ 	case RPMCALLBACK_UNINST_STOP:
+ 
+ 		/* phase complete */
+@@ -2344,8 +2336,6 @@ hif_commit_ts_progress_cb (const void *a
+ 	case RPMCALLBACK_UNPACK_ERROR:
+ 	case RPMCALLBACK_CPIO_ERROR:
+ 	case RPMCALLBACK_SCRIPT_ERROR:
+-	case RPMCALLBACK_SCRIPT_START:
+-	case RPMCALLBACK_SCRIPT_STOP:
+ 	case RPMCALLBACK_UNKNOWN:
+ 	case RPMCALLBACK_REPACKAGE_PROGRESS:
+ 	case RPMCALLBACK_REPACKAGE_START:
+@@ -2738,14 +2728,14 @@ pk_backend_transaction_commit (PkBackend
+ 		goto out;
+ 
+ 	/* import all GPG keys */
+-	ret = hif_keyring_add_public_keys (job_data->keyring, error);
++	ret = hif_keyring_add_public_keys (job_data->ts, error);
+ 	if (!ret)
+ 		goto out;
+ 
+ 	/* find any packages without valid GPG signatures */
+ 	if (pk_bitfield_contain (job_data->transaction_flags,
+ 				 PK_TRANSACTION_FLAG_ENUM_ONLY_TRUSTED)) {
+-		ret = pk_backend_transaction_check_untrusted (job_data->keyring,
++		ret = pk_backend_transaction_check_untrusted (
+ 							      job_data->enabled_sources,
+ 							      job_data->goal,
+ 							      error);
+@@ -2765,15 +2755,7 @@ pk_backend_transaction_commit (PkBackend
+ 	/* setup the transaction */
+ 	commit = g_new0 (HifTransactionCommit, 1);
+ 	commit->timer = g_timer_new ();
+-	rc = rpmtsSetRootDir (job_data->ts, "/");
+-	if (rc < 0) {
+-		ret = FALSE;
+-		g_set_error_literal (error,
+-				     HIF_ERROR,
+-				     PK_ERROR_ENUM_INTERNAL_ERROR,
+-				     "failed to set root");
+-		goto out;
+-	}
++	rpmtsSetRootDir (job_data->ts, "/");
+ 	rpmtsSetNotifyCallback (job_data->ts,
+ 				hif_commit_ts_progress_cb,
+ 				commit);
+--- PackageKit-0.8.15/backends/hawkey/rpmorg-compat.h.orig	1970-01-01 01:00:00.000000000 +0100
++++ PackageKit-0.8.15/backends/hawkey/rpmorg-compat.h	2014-01-19 19:40:00.416711909 +0100
+@@ -0,0 +1,64 @@
++#ifndef RPMORG_COMPAT_H
++#define RPMORG_COMPAT_H
++
++#include <rpm/rpm46compat.h>
++
++#define _RPMVSF_NOSIGNATURES (RPMVSF_NODSAHEADER | RPMVSF_NORSAHEADER | RPMVSF_NODSA | RPMVSF_NORSA)
++#define	_RPMVSF_NODIGESTS (RPMVSF_NOSHA1HEADER | RPMVSF_NOMD5HEADER | RPMVSF_NOSHA1 | RPMVSF_NOMD5)
++
++static inline const char * headerGetString(Header h, int32_t tag)
++{
++    const char *res = NULL;
++    struct rpmtd_s td;
++
++    if (headerGet(h, tag, &td, HEADERGET_MINMEM)) {
++	if (rpmtdCount(&td) == 1) {
++	    res = rpmtdGetString(&td);
++	}
++	rpmtdFreeData(&td);
++    }
++    return res;
++}
++
++static inline uint64_t rpmtdGetNumber(rpmtd td)
++{
++    uint64_t val = 0;
++    int ix;
++    assert(td != NULL);
++    ix = (td->ix >= 0 ? td->ix : 0);
++
++    switch (td->type) {
++    case RPM_INT64_TYPE:
++	val = *((uint64_t *) td->data + ix);
++	break;
++    case RPM_INT32_TYPE:
++	val = *((uint32_t *) td->data + ix);
++	break;
++    case RPM_INT16_TYPE:
++	val = *((uint16_t *) td->data + ix);
++	break;
++    case RPM_INT8_TYPE:
++    case RPM_CHAR_TYPE:
++	val = *((uint8_t *) td->data + ix);
++	break;
++    default:
++	break;
++    }
++    return val;
++}
++
++static inline uint64_t headerGetNumber(Header h, int32_t tag)
++{
++    uint64_t res = 0;
++    struct rpmtd_s td;
++
++    if (headerGet(h, tag, &td, HEADERGET_EXT)) {
++	if (rpmtdCount(&td) == 1) {
++	    res = rpmtdGetNumber(&td);
++	}
++	rpmtdFreeData(&td);
++    }
++    return res;
++}
++
++#endif /* RPMORG_COMPAT_H */
