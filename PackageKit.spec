@@ -149,7 +149,7 @@ Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	hawkey >= 0.4.5
 Provides:	%{name}-backend = %{version}-%{release}
-Obsoletes:	PackageKit-backend-zif
+Obsoletes:	PackageKit-backend-zif < 0.8.14
 
 %description backend-hawkey
 A backend for PackageKit to enable Hawkey functionality.
