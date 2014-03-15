@@ -247,6 +247,9 @@ Summary(pl.UTF-8):	Bashowe uzupełnianie parametrów dla poleceń konsolowych Pa
 Group:		Applications/Shells
 Requires:	%{name} = %{version}-%{release}
 Requires:	bash-completion >= 2
+%if "%{_rpmversion}" >= "5"
+BuildArch:	noarch
+%endif
 
 %description -n bash-completion-packagekit
 This package provides bash-completion for PackageKit console commands.
