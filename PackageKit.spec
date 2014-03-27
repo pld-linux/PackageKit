@@ -17,12 +17,12 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	0.8.15
+Version:	0.8.17
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
-Source0:	http://www.packagekit.org/releases/%{name}-%{version}.tar.xz
-# Source0-md5:	147e35b64e3e3b9ca8b2baefb37531f6
+Source0:	http://www.freedesktop.org/software/PackageKit/releases/%{name}-%{version}.tar.xz
+# Source0-md5:	a2b1a602fee21430b735e52aaf33bd1a
 Patch0:		%{name}-hawkey-rpm5.patch
 Patch3:		smart-at-fix.patch
 Patch4:		%{name}-gstreamer.patch
@@ -46,10 +46,10 @@ BuildRequires:	gstreamer-plugins-base-devel >= 1.0.0
 BuildRequires:	gtk+2-devel >= 2:2.14.0
 BuildRequires:	gtk+3-devel >= 3.0.0
 %{?with_doc:BuildRequires:	gtk-doc >= 1.11}
-%{?with_hawkey:BuildRequires:	hawkey-devel >= 0.4.5}
+%{?with_hawkey:BuildRequires:	hawkey-devel >= 0.4.6}
 BuildRequires:	intltool >= 0.35.0
 BuildRequires:	libarchive-devel
-%{?with_hawkey:BuildRequires:	librepo-devel}
+%{?with_hawkey:BuildRequires:	librepo-devel >= 0.1.5}
 BuildRequires:	libtool
 BuildRequires:	libxslt-progs
 BuildRequires:	pango-devel
@@ -147,7 +147,8 @@ Summary:	PackageKit Hawkey backend
 Summary(pl.UTF-8):	Backend PackageKit oparty na Hawkeyu
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
-Requires:	hawkey >= 0.4.5
+Requires:	hawkey >= 0.4.6
+Requires:	librepo >= 0.1.5
 Provides:	%{name}-backend = %{version}-%{release}
 Obsoletes:	PackageKit-backend-zif < 0.8.14
 

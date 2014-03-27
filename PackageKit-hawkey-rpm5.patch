@@ -270,8 +270,8 @@
  
  #include "hif-utils.h"
  #include "hif-state.h"
---- PackageKit-0.8.15/backends/hawkey/pk-backend-hawkey.c.orig	2013-12-17 15:20:05.000000000 +0100
-+++ PackageKit-0.8.15/backends/hawkey/pk-backend-hawkey.c	2014-01-19 19:40:01.683378522 +0100
+--- PackageKit-0.8.17/backends/hawkey/pk-backend-hawkey.c.orig	2014-03-21 12:37:15.000000000 +0100
++++ PackageKit-0.8.17/backends/hawkey/pk-backend-hawkey.c	2014-03-27 20:41:39.122471856 +0100
 @@ -39,12 +39,14 @@
  #include <hawkey/version.h>
  #include <hawkey/util.h>
@@ -289,7 +289,7 @@
  
  #include "hif-db.h"
  #include "hif-goal.h"
-@@ -77,7 +79,6 @@ typedef struct {
+@@ -79,7 +81,6 @@ typedef struct {
  	HifDb		*db;
  	HifState	*state;
  	rpmts		 ts;
@@ -297,20 +297,20 @@
  	GPtrArray	*packages_to_download;
  	PkBitfield	 transaction_flags;
  	HyGoal		 goal;
-@@ -286,29 +287,32 @@ pk_backend_initialize (PkBackend *backen
- 			       "info");
+@@ -289,29 +290,32 @@ pk_backend_initialize (PkBackend *backen
+ 			  G_CALLBACK (pk_backend_yum_repos_changed_cb), backend);
  
  	/* get info from RPM */
 -	rpmGetOsInfo (&value, NULL);
 +	value = rpmExpand ("%{_target_os}", NULL);
  	g_key_file_set_string (priv->config,
  			       HIF_CONFIG_GROUP_NAME,
- 			       "Hawkey::OsInfo", value);
+ 			       "OsInfo", value);
 -	rpmGetArchInfo (&value, NULL);
 +	value = rpmExpand ("%{_target_cpu}", NULL);
  	g_key_file_set_string (priv->config,
  			       HIF_CONFIG_GROUP_NAME,
- 			       "Hawkey::ArchInfo", value);
+ 			       "ArchInfo", value);
 -	rpmGetArchInfo (&value, NULL);
  	priv->native_arches = g_new0 (gchar *, 3);
  	priv->native_arches[0] = g_strdup (value);
@@ -342,7 +342,7 @@
  		value = "armhfp";
  	}
  	g_key_file_set_string (priv->config,
-@@ -476,7 +480,6 @@ pk_backend_start_job (PkBackend *backend
+@@ -458,7 +462,6 @@ pk_backend_start_job (PkBackend *backend
  
  	/* setup RPM */
  	job_data->ts = rpmtsCreate ();
@@ -350,7 +350,7 @@
  
  	/* HifState */
  	job_data->packages_to_download =
-@@ -546,8 +549,7 @@ pk_backend_stop_job (PkBackend *backend,
+@@ -530,8 +533,7 @@ pk_backend_stop_job (PkBackend *backend,
  	g_ptr_array_unref (job_data->packages_to_download);
  	if (job_data->goal != NULL)
  		hy_goal_free (job_data->goal);
@@ -360,7 +360,7 @@
  	g_object_unref (job_data->db);
  	g_free (job_data);
  	pk_backend_job_set_user_data (job, NULL);
-@@ -1911,7 +1913,7 @@ out:
+@@ -1989,7 +1991,7 @@ out:
   * pk_backend_transaction_check_untrusted:
   */
  static gboolean
@@ -369,7 +369,7 @@
  					GPtrArray *sources,
  					HyGoal goal,
  					GError **error)
-@@ -1957,7 +1959,7 @@ pk_backend_transaction_check_untrusted (
+@@ -2035,7 +2037,7 @@ pk_backend_transaction_check_untrusted (
  		}
  
  		/* check file */
@@ -378,7 +378,7 @@
  							filename,
  							error);
  		if (!ret)
-@@ -2045,15 +2047,6 @@ hif_commit_rpmcb_type_to_string (const r
+@@ -2123,15 +2125,6 @@ hif_commit_rpmcb_type_to_string (const r
  	case RPMCALLBACK_SCRIPT_ERROR:
  		type = "script-error";
  		break;
@@ -394,7 +394,7 @@
  	}
  	return type;
  }
-@@ -2329,7 +2322,6 @@ hif_commit_ts_progress_cb (const void *a
+@@ -2407,7 +2400,6 @@ hif_commit_ts_progress_cb (const void *a
  		/* don't do anything */
  		break;
  
@@ -402,7 +402,7 @@
  	case RPMCALLBACK_UNINST_STOP:
  
  		/* phase complete */
-@@ -2344,8 +2336,6 @@ hif_commit_ts_progress_cb (const void *a
+@@ -2422,8 +2414,6 @@ hif_commit_ts_progress_cb (const void *a
  	case RPMCALLBACK_UNPACK_ERROR:
  	case RPMCALLBACK_CPIO_ERROR:
  	case RPMCALLBACK_SCRIPT_ERROR:
@@ -411,7 +411,7 @@
  	case RPMCALLBACK_UNKNOWN:
  	case RPMCALLBACK_REPACKAGE_PROGRESS:
  	case RPMCALLBACK_REPACKAGE_START:
-@@ -2738,14 +2728,14 @@ pk_backend_transaction_commit (PkBackend
+@@ -2816,14 +2806,14 @@ pk_backend_transaction_commit (PkBackend
  		goto out;
  
  	/* import all GPG keys */
@@ -425,10 +425,10 @@
  				 PK_TRANSACTION_FLAG_ENUM_ONLY_TRUSTED)) {
 -		ret = pk_backend_transaction_check_untrusted (job_data->keyring,
 +		ret = pk_backend_transaction_check_untrusted (
- 							      job_data->enabled_sources,
+ 							      job_data->sources,
  							      job_data->goal,
  							      error);
-@@ -2765,15 +2755,7 @@ pk_backend_transaction_commit (PkBackend
+@@ -2843,15 +2833,7 @@ pk_backend_transaction_commit (PkBackend
  	/* setup the transaction */
  	commit = g_new0 (HifTransactionCommit, 1);
  	commit->timer = g_timer_new ();
