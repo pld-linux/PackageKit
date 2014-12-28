@@ -38,7 +38,7 @@ BuildRequires:	dbus-glib-devel >= 0.76
 BuildRequires:	docbook-dtd412-xml
 BuildRequires:	docbook-dtd42-xml
 BuildRequires:	fontconfig-devel
-BuildRequires:	gettext-devel
+BuildRequires:	gettext-tools
 BuildRequires:	glib2-devel >= 1:2.32.0
 %{?with_introspection:BuildRequires:	gobject-introspection-devel >= 0.9.9}
 BuildRequires:	gstreamer-devel >= 1.0.0
