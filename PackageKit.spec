@@ -5,6 +5,7 @@
 # Conditional build:
 %bcond_without	doc		# build without docs
 %bcond_without	introspection	# gobject introspection, time to time broken
+%bcond_with	alpm		# ALPM (Arch Linux package manager) backend
 %bcond_with	hif		# HIF backend
 %bcond_without	poldek		# Poldek backend
 %bcond_with	python		# Python binding (only for a few backends)
@@ -23,6 +24,8 @@ Patch0:		%{name}-poldek.patch
 Patch1:		%{name}-bashcomp.patch
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
+# pkgconfig(libalpm) >= 8.2.0
+%{?with_alpm:BuildRequires:	alpm-devel >= 4}
 %{?with_hif:BuildRequires:	appstream-glib-devel}
 BuildRequires:	autoconf >= 2.65
 BuildRequires:	automake >= 1:1.11
@@ -138,6 +141,23 @@ PackageKit library API documentation.
 
 %description apidocs -l pl.UTF-8
 Dokumentacja API biblioteki PackageKit.
+
+%package backend-alpm
+Summary:	PackageKit ALPM backend
+Summary(pl.UTF-8):	Backend PackageKit oparty na bibliotece ALPM
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Provides:	%{name}-backend = %{version}-%{release}
+Obsoletes:	PackageKit-backend-hawkey
+Conflicts:	PackageKit < 0.6.8-3
+
+%description backend-alpm
+A backend for PackageKit to enable Arch Linux packages via ALPM
+library.
+
+%description backend-alpm -l pl.UTF-8
+Backend PackageKit dodający obsługę pakietów Arch Linuksa poprzez
+bibliotekę ALPM.
 
 %package backend-hif
 Summary:	PackageKit hif backend
@@ -277,6 +297,7 @@ Wtyczka PackageKit do przeglądarek WWW.
 	%{!?with_introspection:--disable-introspection} \
 	--disable-silent-rules \
 	--enable-bash-completion=%{bash_compdir} \
+	%{__enable_disable alpm} \
 	%{__enable_disable browser browser-plugin} \
 	%{__enable_disable hif} \
 	%{__enable_disable poldek} \
@@ -394,16 +415,26 @@ fi
 %defattr(644,root,root,755)
 %{_gtkdocdir}/PackageKit
 
-%if %{with poldek}
-%files backend-poldek
+%if %{with alpm}
+%files backend-alpm
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_poldek.so
+%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_alpm.so
+%dir %{_sysconfdir}/PackageKit/alpm.d
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/alpm.d/groups.list
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/alpm.d/pacman.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/alpm.d/repos.list
 %endif
 
 %if %{with hif}
 %files backend-hif
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_hif.so
+%endif
+
+%if %{with poldek}
+%files backend-poldek
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_poldek.so
 %endif
 
 %files gstreamer-plugin
