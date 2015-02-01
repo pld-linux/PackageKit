@@ -5,6 +5,7 @@
 # Conditional build:
 %bcond_without	doc		# build without docs
 %bcond_without	introspection	# gobject introspection, time to time broken
+%bcond_with	hif		# HIF backend
 %bcond_without	poldek		# Poldek backend
 %bcond_with	python		# Python binding (only for a few backends)
 %bcond_with	browser		# browser plugin (patrys says: it's flawed by concept)
@@ -22,6 +23,7 @@ Patch0:		%{name}-poldek.patch
 Patch1:		%{name}-bashcomp.patch
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
+%{?with_hif:BuildRequires:	appstream-glib-devel}
 BuildRequires:	autoconf >= 2.65
 BuildRequires:	automake >= 1:1.11
 BuildRequires:	connman-devel
@@ -40,6 +42,7 @@ BuildRequires:	gtk+3-devel >= 3.0.0
 %{?with_doc:BuildRequires:	gtk-doc >= 1.11}
 BuildRequires:	intltool >= 0.35.0
 BuildRequires:	libarchive-devel
+%{?with_hif:BuildRequires:	libhif-devel >= 0.1.7}
 BuildRequires:	libtool
 BuildRequires:	libxslt-progs
 BuildRequires:	pango-devel
@@ -66,7 +69,6 @@ Requires:	%{name}-libs = %{version}-%{release}
 Requires:	ConsoleKit-x11
 Requires:	crondaemon
 Requires:	polkit >= 0.98
-Obsoletes:	PackageKit-backend-hawkey
 Obsoletes:	PackageKit-backend-smart
 Obsoletes:	PackageKit-backend-yum
 Obsoletes:	PackageKit-docs < 0.8.4
@@ -136,6 +138,22 @@ PackageKit library API documentation.
 
 %description apidocs -l pl.UTF-8
 Dokumentacja API biblioteki PackageKit.
+
+%package backend-hif
+Summary:	PackageKit hif backend
+Summary(pl.UTF-8):	Backend PackageKit oparty na bibliotece hif
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	libhif >= 0.1.7
+Provides:	%{name}-backend = %{version}-%{release}
+Obsoletes:	PackageKit-backend-hawkey
+Conflicts:	PackageKit < 0.6.8-3
+
+%description backend-hif
+A backend for PackageKit to enable hif functionality.
+
+%description backend-hif -l pl.UTF-8
+Backend PackageKit dodający obsługę biblioteki hif.
 
 %package backend-poldek
 Summary:	PackageKit Poldek backend
@@ -260,6 +278,7 @@ Wtyczka PackageKit do przeglądarek WWW.
 	--disable-silent-rules \
 	--enable-bash-completion=%{bash_compdir} \
 	%{__enable_disable browser browser-plugin} \
+	%{__enable_disable hif} \
 	%{__enable_disable poldek} \
 	--with-html-dir=%{_gtkdocdir} \
 	--with-mozilla-plugin-dir=%{_browserpluginsdir} \
@@ -379,6 +398,12 @@ fi
 %files backend-poldek
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_poldek.so
+%endif
+
+%if %{with hif}
+%files backend-hif
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_hif.so
 %endif
 
 %files gstreamer-plugin
