@@ -6,30 +6,44 @@
 %bcond_without	doc		# build without docs
 %bcond_without	introspection	# gobject introspection, time to time broken
 %bcond_with	alpm		# ALPM (Arch Linux package manager) backend
-%bcond_with	hif		# HIF backend
-%bcond_without	poldek		# Poldek backend
-%bcond_with	python		# Python binding (only for a few backends)
+%bcond_with	apt		# APT (Debian/Ubuntu) backend using C++ API
+%bcond_with	entropy		# Entropy (Sabayon) backend (Python)
+%bcond_with	hif		# HIF (Fedora/RHEL) backend
+%bcond_with	katja		# Katja (Slackware) backend
+%bcond_with	pisi		# PiSi (Pardus) backend (Python)
+%bcond_without	poldek		# Poldek (PLD) backend
+%bcond_with	portage		# portage (Gentoo) backend (Python)
+%bcond_with	ports		# ports (FreeBSD) backend (Ruby)
+%bcond_with	urpmi		# urpmi (Mandriva/Mageia) backend (Perl)
+%bcond_with	zypp		# ZYPP (openSUSE/SLE) backend
+%bcond_without	python		# Python binding (only for a few backends)
 %bcond_with	browser		# browser plugin (patrys says: it's flawed by concept)
-
+# python binding is built when building any python binding
+%if %{without entropy} && %{without pisi} && %{without ports}
+%undefine	with_python
+%endif
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	1.0.4
+Version:	1.0.5
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.freedesktop.org/software/PackageKit/releases/%{name}-%{version}.tar.xz
-# Source0-md5:	4a07aa7e4c76052b2edf0765c26d2e35
+# Source0-md5:	1b7b4f820d522cf5fb1d4449afd89a27
 Patch0:		%{name}-poldek.patch
 Patch1:		%{name}-bashcomp.patch
+Patch2:		%{name}-format.patch
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
 # pkgconfig(libalpm) >= 8.2.0
 %{?with_alpm:BuildRequires:	alpm-devel >= 4}
 %{?with_hif:BuildRequires:	appstream-glib-devel}
+%{?with_apt:BuildRequires:	apt-devel >= 0.7}
 BuildRequires:	autoconf >= 2.65
 BuildRequires:	automake >= 1:1.11
 BuildRequires:	connman-devel
+%{?with_katja:BuildRequires:	curl-devel}
 BuildRequires:	dbus-devel >= 1.2.0
 BuildRequires:	dbus-glib-devel >= 0.76
 BuildRequires:	docbook-dtd412-xml
@@ -48,6 +62,7 @@ BuildRequires:	libarchive-devel
 %{?with_hif:BuildRequires:	libhif-devel >= 0.1.7}
 BuildRequires:	libtool
 BuildRequires:	libxslt-progs
+%{?with_zypp:BuildRequires:	libzypp-devel >= 6.16.0}
 BuildRequires:	pango-devel
 BuildRequires:	pkgconfig
 %{?with_poldek:BuildRequires:	poldek-devel >= 0.30-1.rc6.4}
@@ -64,6 +79,7 @@ BuildRequires:	xz
 %if %{with browser}
 BuildRequires:	cairo-devel
 BuildRequires:	nspr-devel >= 4.8
+BuildRequires:	pango-devel
 BuildRequires:	xulrunner-devel >= 8.0
 %endif
 Requires(post,postun):	shared-mime-info
@@ -148,8 +164,6 @@ Summary(pl.UTF-8):	Backend PackageKit oparty na bibliotece ALPM
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Provides:	%{name}-backend = %{version}-%{release}
-Obsoletes:	PackageKit-backend-hawkey
-Conflicts:	PackageKit < 0.6.8-3
 
 %description backend-alpm
 A backend for PackageKit to enable Arch Linux packages via ALPM
@@ -159,6 +173,37 @@ library.
 Backend PackageKit dodający obsługę pakietów Arch Linuksa poprzez
 bibliotekę ALPM.
 
+%package backend-aptcc
+Summary:	PackageKit APTcc backend
+Summary(pl.UTF-8):	Backend PackageKit APTcc
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Provides:	%{name}-backend = %{version}-%{release}
+
+%description backend-aptcc
+A backend for PackageKit to enable APT support via C++ API.
+
+%description backend-aptcc -l pl.UTF-8
+Backend PackageKit dodający obsługę zarządcy pakietów APT poprzez API
+C++.
+
+%package backend-entropy
+Summary:	PackageKit Entropy backend
+Summary(pl.UTF-8):	Backend PackageKit Entropy
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	python-packagekit = %{version}-%{release}
+#Requires:	python-entropy
+Provides:	%{name}-backend = %{version}-%{release}
+
+%description backend-entropy
+A backend for PackageKit to enable Sabayon packages support through
+Entropy package manager.
+
+%description backend-entropy -l pl.UTF-8
+Backend PackageKit dodający obsługę pakietów dystrybucji Sabayon przy
+użyciu zarządcy pakietów Entropy.
+
 %package backend-hif
 Summary:	PackageKit hif backend
 Summary(pl.UTF-8):	Backend PackageKit oparty na bibliotece hif
@@ -167,13 +212,46 @@ Requires:	%{name} = %{version}-%{release}
 Requires:	libhif >= 0.1.7
 Provides:	%{name}-backend = %{version}-%{release}
 Obsoletes:	PackageKit-backend-hawkey
-Conflicts:	PackageKit < 0.6.8-3
 
 %description backend-hif
-A backend for PackageKit to enable hif functionality.
+A backend for PackageKit to enable RPM packages support via hif
+library (used in Fedora).
 
 %description backend-hif -l pl.UTF-8
-Backend PackageKit dodający obsługę biblioteki hif.
+Backend PackageKit dodający obsługę pakietów RPM poprzez bibliotekę
+hif (używaną w dystrybucji Fedora).
+
+%package backend-katja
+Summary:	PackageKit Katja backend
+Summary(pl.UTF-8):	Backend PackageKit Katja
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Provides:	%{name}-backend = %{version}-%{release}
+
+%description backend-katja
+Katja backend for PackageKit to enable Slackware repositories
+support.
+
+%description backend-katja -l pl.UTF-8
+Backend PackageKit Katja dodający obsługę repozytoriów Slackware.
+
+%package backend-pisi
+Summary:	PackageKit PiSi backend
+Summary(pl.UTF-8):	Backend PackageKit PiSi
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	python-packagekit = %{version}-%{release}
+#Requires:	python-piksemel
+#Requires:	python-pisi
+Provides:	%{name}-backend = %{version}-%{release}
+
+%description backend-pisi
+A backend for PackageKit to enable PiSi packages support. PiSi
+packages are originated in Pardus distribution.
+
+%description backend-pisi -l pl.UTF-8
+Backend PackageKit dodający obsługę pakietów PiSi. Pakiety PiSi
+wywodzą się z dystrybucji Pardus.
 
 %package backend-poldek
 Summary:	PackageKit Poldek backend
@@ -182,13 +260,76 @@ Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	poldek >= 0.30-1.rc6.4
 Provides:	%{name}-backend = %{version}-%{release}
-Conflicts:	PackageKit < 0.6.8-3
 
 %description backend-poldek
-A backend for PackageKit to enable Poldek functionality.
+A backend for PackageKit to enable RPM packages support through Poldek
+- native PLD package manager.
 
 %description backend-poldek -l pl.UTF-8
-Backend PackageKit dodający obsługę Poldka.
+Backend PackageKit dodający obsługę pakietów RPM poprzez Poldka -
+natywnego zarządcę pakietów dystrybucji PLD.
+
+%package backend-portage
+Summary:	PackageKit Portage backend
+Summary(pl.UTF-8):	Backend PackageKit Portage
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	python-packagekit = %{version}-%{release}
+#Requires:	python-portage
+Provides:	%{name}-backend = %{version}-%{release}
+
+%description backend-portage
+A backend for PackageKit to enable Gentoo Portage support.
+
+%description backend-portage -l pl.UTF-8
+Backend PackageKit dodający obsługę systemu Portage dystrybucji
+Gentoo.
+
+%package backend-ports
+Summary:	PackageKit Ports backend
+Summary(pl.UTF-8):	Backend PackageKit Ports
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+#Requires:	ruby-pkgtools
+Provides:	%{name}-backend = %{version}-%{release}
+
+%description backend-ports
+A backend for PackageKit to enable FreeBSD Ports support.
+
+%description backend-ports -l pl.UTF-8
+Backend PackageKit dodający obsługę portów systemu FreeBSD.
+
+%package backend-urpmi
+Summary:	PackageKit URPMI backend
+Summary(pl.UTF-8):	Backend PackageKit URPMI
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+#Requires:	perl-URPM
+Provides:	%{name}-backend = %{version}-%{release}
+
+%description backend-urpmi
+A backend for PackageKit to enable RPM packages support through URPMI
+package manager (originated in Mandriva).
+
+%description backend-urpmi -l pl.UTF-8
+Backend PackageKit dodający obsługę pakietów RPM poprzez zarządcę
+URPMI (pochodzącego z dystrybucji Mandriva).
+
+%package backend-zypp
+Summary:	PackageKit Zypp backend
+Summary(pl.UTF-8):	Backend PackageKit Zypp
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	libzypp >= 6.16.0
+Provides:	%{name}-backend = %{version}-%{release}
+
+%description backend-zypp
+A backend for PackageKit to enable RPM packages support through Zypp
+library (originated in openSUSE/SLE).
+
+%description backend-zypp -l pl.UTF-8
+Backend PackageKit dodający obsługę pakietów RPM poprzez bibliotekę
+Zypp (pochodzącą z dystrybucji openSUSE/SLE).
 
 %package gstreamer-plugin
 Summary:	GStreamer codecs installer
@@ -279,6 +420,7 @@ Wtyczka PackageKit do przeglądarek WWW.
 %setup -q
 %patch0 -p1
 %patch1 -p1
+%patch2 -p1
 
 %build
 %if %{with doc}
@@ -290,6 +432,7 @@ Wtyczka PackageKit do przeglądarek WWW.
 %{__autoconf}
 %{__autoheader}
 %{__automake}
+%{?with_zypp:CPPFLAGS="%{rpmcppflags} -D_RPM_5 -I/usr/include/rpm"}
 %configure \
 	--disable-command-not-found \
 	--disable-dummy \
@@ -298,9 +441,17 @@ Wtyczka PackageKit do przeglądarek WWW.
 	--disable-silent-rules \
 	--enable-bash-completion=%{bash_compdir} \
 	%{__enable_disable alpm} \
+	%{__enable_disable apt aptcc} \
 	%{__enable_disable browser browser-plugin} \
+	%{__enable_disable entropy} \
 	%{__enable_disable hif} \
+	%{__enable_disable katja} \
+	%{__enable_disable pisi} \
 	%{__enable_disable poldek} \
+	%{__enable_disable portage} \
+	%{__enable_disable ports} \
+	%{__enable_disable urpmi} \
+	%{__enable_disable zypp} \
 	--with-html-dir=%{_gtkdocdir} \
 	--with-mozilla-plugin-dir=%{_browserpluginsdir} \
 	--with-security-framework=polkit
@@ -425,16 +576,85 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/alpm.d/repos.list
 %endif
 
+%if %{with apt}
+%files backend-aptcc
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_aptcc.so
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/apt/apt.conf.d/20packagekit
+%dir %{_datadir}/PackageKit/helpers/aptcc
+%attr(755,root,root) %{_datadir}/PackageKit/helpers/aptcc/get-distro-upgrade.py
+%attr(755,root,root) %{_datadir}/PackageKit/helpers/aptcc/pkconffile
+%{_datadir}/PackageKit/helpers/aptcc/pkconffile.nodiff
+%endif
+
+%if %{with entropy}
+%files backend-entropy
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_entropy.so
+%dir %{_datadir}/PackageKit/helpers/entropy
+%attr(755,root,root) %{_datadir}/PackageKit/helpers/entropy/entropyBackend.py
+%endif
+
 %if %{with hif}
 %files backend-hif
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_hif.so
 %endif
 
+%if %{with katja}
+%files backend-katja
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_katja.so
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/Katja.conf
+%dir /var/cache/PackageKit/metadata
+%ghost /var/cache/PackageKit/metadata/metadata.db
+%endif
+
+%if %{with pisi}
+%files backend-pisi
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_pisi.so
+%dir %{_datadir}/PackageKit/helpers/pisi
+%attr(755,root,root) %{_datadir}/PackageKit/helpers/pisi/pisiBackend.py
+%endif
+
 %if %{with poldek}
 %files backend-poldek
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_poldek.so
+%endif
+
+%if %{with portage}
+%files backend-portage
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_portage.so
+%dir %{_datadir}/PackageKit/helpers/portage
+%attr(755,root,root) %{_datadir}/PackageKit/helpers/portage/portageBackend.py
+%endif
+
+%if %{with ports}
+%files backend-ports
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_ports.so
+%dir %{_datadir}/PackageKit/helpers/ports
+%attr(755,root,root) %{_datadir}/PackageKit/helpers/ports/portsBackend.rb
+%{_datadir}/PackageKit/helpers/ports/ruby_packagekit
+%endif
+
+%if %{with urpmi}
+%files backend-urpmi
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_urpmi.so
+%dir %{_datadir}/PackageKit/helpers/urpmi
+%attr(755,root,root) %{_datadir}/PackageKit/helpers/urpmi/urpmi-dispatched-backend.pl
+%{_datadir}/PackageKit/helpers/urpmi/perl_packagekit
+%{_datadir}/PackageKit/helpers/urpmi/urpmi_backend
+%endif
+
+%if %{with zypp}
+%files backend-zypp
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_zypp.so
 %endif
 
 %files gstreamer-plugin
