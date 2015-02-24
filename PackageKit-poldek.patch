@@ -1,0 +1,11 @@
+--- PackageKit-1.0.4/backends/poldek/pk-backend-poldek.c.orig	2014-09-09 18:58:14.000000000 +0200
++++ PackageKit-1.0.4/backends/poldek/pk-backend-poldek.c	2015-01-31 16:36:47.306797886 +0100
+@@ -2179,7 +2179,7 @@
+ 		pberror->vfffmsg = g_strdup (message);
+ 
+ 		// 'vfff: unable to connect to ftp.pld-linux.org:21: Connection refused'
+-		pk_backend_job_message (job, PK_MESSAGE_ENUM_CONNECTION_REFUSED, "%s", message);
++		//pk_backend_job_message (job, PK_MESSAGE_ENUM_CONNECTION_REFUSED, "%s", message);
+ 	} else {
+ 		if (pri & LOGERR) {
+ 			g_string_append_printf (pberror->tslog, "error: %s", message);
