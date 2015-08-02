@@ -1,0 +1,52 @@
+--- PackageKit-1.0.7/configure.ac~	2015-08-02 12:49:14.000000000 +0200
++++ PackageKit-1.0.7/configure.ac	2015-08-02 12:58:42.496449586 +0200
+@@ -235,7 +235,7 @@
+ AC_ARG_ENABLE(systemd, AS_HELP_STRING([--enable-systemd],[enable systemd and logind code]),
+ 	      enable_systemd=$enableval,enable_systemd=yes)
+ if test x$enable_systemd = xyes; then
+-	PKG_CHECK_MODULES(SYSTEMD, libsystemd-login libsystemd-journal)
++	PKG_CHECK_MODULES(SYSTEMD, libsystemd-login libsystemd-journal libsystemd-daemon)
+ 	AC_ARG_WITH([systemdsystemunitdir],
+ 		    AS_HELP_STRING([--with-systemdsystemunitdir=DIR], [Directory for systemd service files]),
+ 		    [has_systemdsystemunitdir=$with_systemdsystemunitdir],
+--- PackageKit-1.0.7/src/pk-dbus.c~	2015-04-22 11:54:49.000000000 +0200
++++ PackageKit-1.0.7/src/pk-dbus.c	2015-08-02 12:57:29.398321174 +0200
+@@ -28,6 +28,7 @@
+ #include <gio/gio.h>
+ 
+ #ifdef HAVE_SYSTEMD
++ #include <systemd/sd-daemon.h>
+  #include <systemd/sd-login.h>
+ #endif
+ 
+@@ -222,9 +222,7 @@
+ pk_dbus_get_session (PkDbus *dbus, const gchar *sender)
+ {
+ 	gchar *session = NULL;
+-#ifndef HAVE_SYSTEMD
+ 	_cleanup_error_free_ GError *error = NULL;
+-#endif
+ 	guint pid;
+ 	_cleanup_variant_unref_ GVariant *value = NULL;
+ 
+@@ -252,8 +254,10 @@
+ 
+ 	/* get session from systemd or ConsoleKit */
+ #ifdef HAVE_SYSTEMD
++        if (sd_booted () > 0) {
+ 	session = pk_dbus_get_session_systemd (pid);
+-#else
++	} else {
++#endif
+ 	/* get session from ConsoleKit */
+ 	value = g_dbus_proxy_call_sync (dbus->priv->proxy_session,
+ 					"GetSessionForUnixProcess",
+@@ -269,6 +273,8 @@
+ 		goto out;
+ 	}
+ 	g_variant_get (value, "(o)", &session);
++#ifdef HAVE_SYSTEMD
++	}
+ #endif
+ out:
+ 	return session;

@@ -25,15 +25,16 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	1.0.5
+Version:	1.0.7
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.freedesktop.org/software/PackageKit/releases/%{name}-%{version}.tar.xz
-# Source0-md5:	1b7b4f820d522cf5fb1d4449afd89a27
+# Source0-md5:	5d6fc6cdd44354c5b7bab7bb434cab1f
 Patch0:		%{name}-poldek.patch
 Patch1:		%{name}-bashcomp.patch
 Patch2:		%{name}-format.patch
+Patch3:		consolekit-fallback.patch
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
 # pkgconfig(libalpm) >= 8.2.0
@@ -85,7 +86,6 @@ BuildRequires:	xulrunner-devel >= 8.0
 Requires(post,postun):	shared-mime-info
 Requires:	%{name}-backend
 Requires:	%{name}-libs = %{version}-%{release}
-Requires:	ConsoleKit-x11
 Requires:	crondaemon
 Requires:	polkit >= 0.98
 Obsoletes:	PackageKit-backend-smart
@@ -421,6 +421,7 @@ Wtyczka PackageKit do przeglądarek WWW.
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
+%patch3 -p1
 
 %build
 %if %{with doc}
