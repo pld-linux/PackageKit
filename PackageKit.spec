@@ -88,6 +88,7 @@ Requires:	%{name}-backend
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	crondaemon
 Requires:	polkit >= 0.98
+Suggests:	ConsoleKit-x11
 Obsoletes:	PackageKit-backend-smart
 Obsoletes:	PackageKit-backend-yum
 Obsoletes:	PackageKit-docs < 0.8.4
@@ -229,8 +230,7 @@ Requires:	%{name} = %{version}-%{release}
 Provides:	%{name}-backend = %{version}-%{release}
 
 %description backend-katja
-Katja backend for PackageKit to enable Slackware repositories
-support.
+Katja backend for PackageKit to enable Slackware repositories support.
 
 %description backend-katja -l pl.UTF-8
 Backend PackageKit Katja dodający obsługę repozytoriów Slackware.
