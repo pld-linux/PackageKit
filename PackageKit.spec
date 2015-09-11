@@ -17,6 +17,7 @@
 %bcond_with	urpmi		# urpmi (Mandriva/Mageia) backend (Perl)
 %bcond_with	zypp		# ZYPP (openSUSE/SLE) backend
 %bcond_without	python		# Python binding (only for a few backends)
+%bcond_without	vala		# Vala binding
 %bcond_with	browser		# browser plugin (patrys says: it's flawed by concept)
 # python binding is built when building any python binding
 %if %{without entropy} && %{without pisi} && %{without ports}
@@ -25,16 +26,17 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	1.0.7
+Version:	1.0.8
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.freedesktop.org/software/PackageKit/releases/%{name}-%{version}.tar.xz
-# Source0-md5:	5d6fc6cdd44354c5b7bab7bb434cab1f
+# Source0-md5:	15934aa27f7a605dfa0cd0a89ecb1eb1
 Patch0:		%{name}-poldek.patch
 Patch1:		%{name}-bashcomp.patch
 Patch2:		%{name}-format.patch
 Patch3:		consolekit-fallback.patch
+Patch4:		%{name}-missing.patch
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
 # pkgconfig(libalpm) >= 8.2.0
@@ -73,9 +75,10 @@ BuildRequires:	readline-devel
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.311
 BuildRequires:	sqlite3-devel >= 3
-BuildRequires:	systemd-devel
+BuildRequires:	systemd-devel >= 1:209
 BuildRequires:	tar >= 1:1.22
 BuildRequires:	udev-glib-devel
+%{?with_vala:BuildRequires:	vala >= 2:0.16}
 BuildRequires:	xz
 %if %{with browser}
 BuildRequires:	cairo-devel
@@ -143,6 +146,19 @@ Static packagekit-glib library.
 
 %description static -l pl.UTF-8
 Statyczna biblioteka packagekit-glib.
+
+%package -n vala-packagekit
+Summary:	Vala API for PackageKit library
+Summary(pl.UTF-8):	API języka Vala do biblioteki PackageKitu
+Group:		Development/Libraries
+Requires:	%{name}-devel = %{version}-%{release}
+Requires:	vala >= 2:0.16
+
+%description -n vala-packagekit
+Vala API for PackageKit library.
+
+%description -n vala-packagekit -l pl.UTF-8
+API języka Vala do biblioteki PackageKitu.
 
 %package apidocs
 Summary:	PackageKit library API documentation
@@ -422,6 +438,7 @@ Wtyczka PackageKit do przeglądarek WWW.
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
+%patch4 -p1
 
 %build
 %if %{with doc}
@@ -562,6 +579,12 @@ fi
 %files static
 %defattr(644,root,root,755)
 %{_libdir}/libpackagekit-glib2.a
+
+%if %{with vala}
+%files -n vala-packagekit
+%defattr(644,root,root,755)
+%{_datadir}/vala/vapi/packagekit-glib2.vapi
+%endif
 
 %files apidocs
 %defattr(644,root,root,755)
