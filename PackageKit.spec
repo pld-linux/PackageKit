@@ -26,12 +26,12 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	1.0.9
+Version:	1.0.10
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.freedesktop.org/software/PackageKit/releases/%{name}-%{version}.tar.xz
-# Source0-md5:	a54db27ae808fe728142c42093781f14
+# Source0-md5:	2f00e3e55656a6e06da55e30ad5ef2f4
 Patch0:		%{name}-poldek.patch
 Patch1:		%{name}-bashcomp.patch
 Patch2:		%{name}-format.patch
