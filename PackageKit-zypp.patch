@@ -1,0 +1,59 @@
+--- PackageKit-1.0.11/backends/zypp/pk-backend-zypp.cpp.orig	2015-11-30 17:18:58.487752181 +0100
++++ PackageKit-1.0.11/backends/zypp/pk-backend-zypp.cpp	2015-11-30 17:45:58.811017517 +0100
+@@ -3577,7 +3577,6 @@
+ 	const gchar *proxy_http;
+ 	const gchar *proxy_https;
+ 	const gchar *proxy_ftp;
+-	const gchar *uri;
+ 	const gchar *proxy_socks;
+ 	const gchar *no_proxy;
+ 	const gchar *pac;
+@@ -3590,33 +3589,29 @@
+ 	/* http_proxy */
+ 	proxy_http = pk_backend_job_get_proxy_http (job);
+ 	if (!pk_strzero (proxy_http)) {
+-		uri = pk_backend_convert_uri (proxy_http);
++		_cleanup_free_ gchar *uri = pk_backend_convert_uri (proxy_http);
+ 		g_setenv ("http_proxy", uri, TRUE);
+-		g_free (uri);
+ 	}
+ 
+ 	/* https_proxy */
+ 	proxy_https = pk_backend_job_get_proxy_https (job);
+ 	if (!pk_strzero (proxy_https)) {
+-		uri = pk_backend_convert_uri (proxy_https);
++		_cleanup_free_ gchar *uri = pk_backend_convert_uri (proxy_https);
+ 		g_setenv ("https_proxy", uri, TRUE);
+-		g_free (uri);
+ 	}
+ 
+ 	/* ftp_proxy */
+ 	proxy_ftp = pk_backend_job_get_proxy_ftp (job);
+ 	if (!pk_strzero (proxy_ftp)) {
+-		uri = pk_backend_convert_uri (proxy_ftp);
++		_cleanup_free_ gchar *uri = pk_backend_convert_uri (proxy_ftp);
+ 		g_setenv ("ftp_proxy", uri, TRUE);
+-		g_free (uri);
+ 	}
+ 
+ 	/* socks_proxy */
+ 	proxy_socks = pk_backend_job_get_proxy_socks (job);
+ 	if (!pk_strzero (proxy_socks)) {
+-		uri = pk_backend_convert_uri (proxy_socks);
++		_cleanup_free_ gchar *uri = pk_backend_convert_uri (proxy_socks);
+ 		g_setenv ("socks_proxy", uri, TRUE);
+-		g_free (uri);
+ 	}
+ 
+ 	/* no_proxy */
+@@ -3628,9 +3623,8 @@
+ 	/* pac */
+ 	pac = pk_backend_job_get_pac (job);
+ 	if (!pk_strzero (pac)) {
+-		uri = pk_backend_convert_uri (pac);
++		_cleanup_free_ gchar *uri = pk_backend_convert_uri (pac);
+ 		g_setenv ("pac", uri, TRUE);
+-		g_free (uri);
+ 	}
+ }
+ 

@@ -26,16 +26,17 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	1.0.10
+Version:	1.0.11
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.freedesktop.org/software/PackageKit/releases/%{name}-%{version}.tar.xz
-# Source0-md5:	2f00e3e55656a6e06da55e30ad5ef2f4
+# Source0-md5:	f7ab847e87328d4bee155bcada10dcba
 Patch0:		%{name}-poldek.patch
 Patch1:		%{name}-bashcomp.patch
 Patch2:		%{name}-format.patch
 Patch3:		consolekit-fallback.patch
+Patch4:		%{name}-zypp.patch
 URL:		http://www.packagekit.org/
 BuildRequires:	NetworkManager-devel >= 0.6.5
 # pkgconfig(libalpm) >= 8.2.0
@@ -64,7 +65,7 @@ BuildRequires:	libarchive-devel
 %{?with_hif:BuildRequires:	libhif-devel >= 0.1.7}
 BuildRequires:	libtool
 BuildRequires:	libxslt-progs
-%{?with_zypp:BuildRequires:	libzypp-devel >= 6.16.0}
+%{?with_zypp:BuildRequires:	libzypp-devel >= 15}
 BuildRequires:	pango-devel
 BuildRequires:	pkgconfig
 %{?with_poldek:BuildRequires:	poldek-devel >= 0.30-1.rc6.4}
@@ -335,7 +336,7 @@ Summary:	PackageKit Zypp backend
 Summary(pl.UTF-8):	Backend PackageKit Zypp
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
-Requires:	libzypp >= 6.16.0
+Requires:	libzypp >= 15
 Provides:	%{name}-backend = %{version}-%{release}
 
 %description backend-zypp
@@ -437,6 +438,7 @@ Wtyczka PackageKit do przeglądarek WWW.
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
+%patch4 -p1
 
 %build
 %if %{with doc}
