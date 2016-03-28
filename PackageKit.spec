@@ -19,15 +19,17 @@
 %bcond_without	python		# Python binding (only for a few backends)
 %bcond_without	vala		# Vala binding
 %bcond_with	browser		# browser plugin (patrys says: it's flawed by concept)
-# python binding is built when building any python binding
+
+# Python binding is built when building any python binding
 %if %{without entropy} && %{without pisi} && %{without ports}
 %undefine	with_python
 %endif
+
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
 Version:	1.0.11
-Release:	1
+Release:	2
 License:	GPL v2+
 Group:		Applications/System
 Source0:	http://www.freedesktop.org/software/PackageKit/releases/%{name}-%{version}.tar.xz
@@ -153,6 +155,9 @@ Summary(pl.UTF-8):	API języka Vala do biblioteki PackageKitu
 Group:		Development/Libraries
 Requires:	%{name}-devel = %{version}-%{release}
 Requires:	vala >= 2:0.16
+%if "%{_rpmversion}" >= "5"
+BuildArch:	noarch
+%endif
 
 %description -n vala-packagekit
 Vala API for PackageKit library.
