@@ -555,7 +555,6 @@ fi
 %{_mandir}/man1/pkmon.1*
 %{systemdunitdir}/packagekit.service
 %{systemdunitdir}/packagekit-offline-update.service
-%dir %{systemdunitdir}/system-update.target.wants
 %{systemdunitdir}/system-update.target.wants/packagekit-offline-update.service
 %dir /var/cache/PackageKit
 %dir /var/cache/PackageKit/downloads
