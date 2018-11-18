@@ -32,14 +32,14 @@ Version:	1.0.11
 Release:	2
 License:	GPL v2+
 Group:		Applications/System
-Source0:	http://www.freedesktop.org/software/PackageKit/releases/%{name}-%{version}.tar.xz
+Source0:	https://www.freedesktop.org/software/PackageKit/releases/%{name}-%{version}.tar.xz
 # Source0-md5:	f7ab847e87328d4bee155bcada10dcba
 Patch0:		%{name}-poldek.patch
 Patch1:		%{name}-bashcomp.patch
 Patch2:		%{name}-format.patch
 Patch3:		consolekit-fallback.patch
 Patch4:		%{name}-zypp.patch
-URL:		http://www.packagekit.org/
+URL:		https://www.freedesktop.org/software/PackageKit/
 BuildRequires:	NetworkManager-devel >= 0.6.5
 # pkgconfig(libalpm) >= 8.2.0
 %{?with_alpm:BuildRequires:	alpm-devel >= 4}
