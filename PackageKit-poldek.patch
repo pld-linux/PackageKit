@@ -9,3 +9,23 @@
  	} else {
  		if (pri & LOGERR) {
  			g_string_append_printf (pberror->tslog, "error: %s", message);
+--- PackageKit-1.1.13/backends/poldek/pk-backend-poldek.c~	2020-03-03 11:43:32.000000000 +0100
++++ PackageKit-1.1.13/backends/poldek/pk-backend-poldek.c	2020-03-03 11:46:06.324485256 +0100
+@@ -979,7 +979,7 @@ poldek_get_nvra_from_package_id (const g
+ static tn_array*
+ poldek_get_installed_packages (void)
+ {
+-	return poclidek_get_dent_packages (priv->cctx, POCLIDEK_INSTALLEDDIR);
++	return poclidek_get_dent_packages (priv->cctx, POCLIDEK_INSTALLEDDIR, 0);
+ }
+ 
+ static tn_array*
+@@ -2723,7 +2723,7 @@ get_obsoletedby_pkg (struct pkg *pkg)
+ 	obsoletes = g_ptr_array_new ();
+ 
+ 	/* get installed packages */
+-	dbpkgs = poclidek_get_dent_packages (priv->cctx, POCLIDEK_INSTALLEDDIR);
++	dbpkgs = poclidek_get_dent_packages (priv->cctx, POCLIDEK_INSTALLEDDIR, 0);
+ 
+ 	if (dbpkgs == NULL)
+ 		return NULL;

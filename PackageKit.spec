@@ -28,17 +28,16 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	1.0.11
-Release:	3
+Version:	1.1.13
+Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	https://www.freedesktop.org/software/PackageKit/releases/%{name}-%{version}.tar.xz
-# Source0-md5:	f7ab847e87328d4bee155bcada10dcba
+# Source0-md5:	7635892baa047639cf5590d6f57324c1
 Patch0:		%{name}-poldek.patch
 Patch1:		%{name}-bashcomp.patch
-Patch2:		%{name}-format.patch
+
 Patch3:		consolekit-fallback.patch
-Patch4:		%{name}-zypp.patch
 URL:		https://www.freedesktop.org/software/PackageKit/
 BuildRequires:	NetworkManager-devel >= 0.6.5
 # pkgconfig(libalpm) >= 8.2.0
@@ -441,9 +440,8 @@ Wtyczka PackageKit do przeglądarek WWW.
 %setup -q
 %patch0 -p1
 %patch1 -p1
-%patch2 -p1
+
 %patch3 -p1
-%patch4 -p1
 
 %build
 %if %{with doc}
@@ -498,13 +496,6 @@ ln -s pk-gstreamer-install $RPM_BUILD_ROOT%{_libdir}/gst-install-plugins-helper
 %if %{with browser}
 %{__rm} $RPM_BUILD_ROOT%{_browserpluginsdir}/*.{la,a}
 %endif
-
-# empty version of bg
-%{__rm} -r $RPM_BUILD_ROOT%{_localedir}/bg_BG
-# empty version of fa (empty as well BTW)
-%{__rm} -r $RPM_BUILD_ROOT%{_localedir}/fa_IR
-# outdated copy of it
-%{__rm} -r $RPM_BUILD_ROOT%{_localedir}/it_IT
 
 %py_postclean
 
@@ -688,7 +679,7 @@ fi
 %files gstreamer-plugin
 %defattr(644,root,root,755)
 %doc contrib/gstreamer-plugin/README
-%attr(755,root,root) %{_libexecdir}/gst-install-plugins-helper
+%attr(755,root,root) %{_libdir}/gst-install-plugins-helper
 %attr(755,root,root) %{_libexecdir}/pk-gstreamer-install
 
 %files gtk-module
