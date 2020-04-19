@@ -7,21 +7,22 @@
 %bcond_without	introspection	# gobject introspection, time to time broken
 %bcond_with	alpm		# ALPM (Arch Linux package manager) backend
 %bcond_with	apt		# APT (Debian/Ubuntu) backend using C++ API
+%bcond_with	dnf		# DNF (Fedora/RHEL) backend
 %bcond_with	entropy		# Entropy (Sabayon) backend (Python)
-%bcond_with	hif		# HIF (Fedora/RHEL) backend
-%bcond_with	katja		# Katja (Slackware) backend
+%bcond_with	nix		# Nix (NixOS) backend
 %bcond_with	pisi		# PiSi (Pardus) backend (Python)
 %bcond_without	poldek		# Poldek (PLD) backend
 %bcond_with	portage		# portage (Gentoo) backend (Python)
 %bcond_with	ports		# ports (FreeBSD) backend (Ruby)
+%bcond_with	slack		# Slack (Slackware) backend
 %bcond_with	urpmi		# urpmi (Mandriva/Mageia) backend (Perl)
+%bcond_with	yum		# YUM (Fedora) backend (Python)
 %bcond_with	zypp		# ZYPP (openSUSE/SLE) backend
 %bcond_without	python		# Python binding (only for a few backends)
 %bcond_without	vala		# Vala binding
-%bcond_with	browser		# browser plugin (patrys says: it's flawed by concept)
 
 # Python binding is built when building any python binding
-%if %{without entropy} && %{without pisi} && %{without ports}
+%if %{without entropy} && %{without pisi} && %{without ports} && %{without yum}
 %undefine	with_python
 %endif
 
@@ -39,22 +40,23 @@ Patch1:		%{name}-bashcomp.patch
 
 Patch3:		consolekit-fallback.patch
 URL:		https://www.freedesktop.org/software/PackageKit/
+%{?with_apt:BuildRequires:	AppStream-devel >= 0.11}
 BuildRequires:	NetworkManager-devel >= 0.6.5
-# pkgconfig(libalpm) >= 8.2.0
-%{?with_alpm:BuildRequires:	alpm-devel >= 4}
-%{?with_hif:BuildRequires:	appstream-glib-devel}
-%{?with_apt:BuildRequires:	apt-devel >= 0.7}
+# pkgconfig(libalpm) >= 12.0.0
+%{?with_alpm:BuildRequires:	alpm-devel >= 5.2}
+%{?with_dnf:BuildRequires:	appstream-glib-devel}
+%{?with_apt:BuildRequires:	apt-devel >= 1.7}
 BuildRequires:	autoconf >= 2.65
 BuildRequires:	automake >= 1:1.11
 BuildRequires:	connman-devel
-%{?with_katja:BuildRequires:	curl-devel}
+%{?with_slack:BuildRequires:	curl-devel}
 BuildRequires:	dbus-devel >= 1.2.0
 BuildRequires:	dbus-glib-devel >= 0.76
 BuildRequires:	docbook-dtd412-xml
 BuildRequires:	docbook-dtd42-xml
 BuildRequires:	fontconfig-devel
 BuildRequires:	gettext-tools
-BuildRequires:	glib2-devel >= 1:2.32.0
+BuildRequires:	glib2-devel >= 1:2.54.0
 %{?with_introspection:BuildRequires:	gobject-introspection-devel >= 0.9.9}
 BuildRequires:	gstreamer-devel >= 1.0.0
 BuildRequires:	gstreamer-plugins-base-devel >= 1.0.0
@@ -63,35 +65,39 @@ BuildRequires:	gtk+3-devel >= 3.0.0
 %{?with_doc:BuildRequires:	gtk-doc >= 1.11}
 BuildRequires:	intltool >= 0.35.0
 BuildRequires:	libarchive-devel
-%{?with_hif:BuildRequires:	libhif-devel >= 0.1.7}
-BuildRequires:	libtool
+%{?with_dnf:BuildRequires:	libdnf-devel >= 0.22.0}
+%if %{with apt} || %{with nix}
+BuildRequires:	libstdc++-devel >= 6:4.7
+%endif
+%{?with_slack:BuildRequires:	libstdc++-devel >= 6:5}
+BuildRequires:	libtool >= 2:2
 BuildRequires:	libxslt-progs
 %{?with_zypp:BuildRequires:	libzypp-devel >= 15}
+# nix-expr nix-main nix-store
+%{?with_nix:BuildRequires:	nix-devel >= 1.12}
 BuildRequires:	pango-devel
 BuildRequires:	pkgconfig
+# when released; just to detect which reboot modes to use (library not linked)
+#BuildRequires:	plymouth-devel >= 0.9.5
 %{?with_poldek:BuildRequires:	poldek-devel >= 0.30-1.rc6.4}
-BuildRequires:	polkit-devel >= 0.98
+BuildRequires:	polkit-devel >= 0.114
+# or 1:3.2
 %{?with_python:BuildRequires:	python-devel >= 1:2.7}
 BuildRequires:	readline-devel
+%{?with_dnf:BuildRequires:	rpm-devel >= 4.?}
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.311
 BuildRequires:	sqlite3-devel >= 3
-BuildRequires:	systemd-devel >= 1:209
+BuildRequires:	systemd-devel >= 1:213
 BuildRequires:	tar >= 1:1.22
 BuildRequires:	udev-glib-devel
 %{?with_vala:BuildRequires:	vala >= 2:0.16}
 BuildRequires:	xz
-%if %{with browser}
-BuildRequires:	cairo-devel
-BuildRequires:	nspr-devel >= 4.8
-BuildRequires:	pango-devel
-BuildRequires:	xulrunner-devel >= 8.0
-%endif
 Requires(post,postun):	shared-mime-info
 Requires:	%{name}-backend
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	crondaemon
-Requires:	polkit >= 0.98
+Requires:	polkit >= 0.114
 Suggests:	ConsoleKit-x11
 Obsoletes:	PackageKit-backend-smart
 Obsoletes:	PackageKit-backend-yum
@@ -113,7 +119,8 @@ zgodnego z wieloma dystrybucjami i architekturami.
 Summary:	packagekit-glib library
 Summary(pl.UTF-8):	Biblioteka packagekit-glib
 Group:		Libraries
-Requires:	glib2 >= 1:2.32.0
+Requires:	glib2 >= 1:2.54.0
+Obsoletes:	browser-plugin-packagekit < 1.1.0
 
 %description libs
 packagekit-glib library.
@@ -127,7 +134,7 @@ Summary(pl.UTF-8):	Pliki nagłówkowe biblioteki packagekit-glib
 Group:		Development/Libraries
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	dbus-devel >= 1.2.0
-Requires:	glib2-devel >= 1:2.32.0
+Requires:	glib2-devel >= 1:2.54.0
 Requires:	sqlite3-devel
 
 %description devel
@@ -154,7 +161,7 @@ Summary(pl.UTF-8):	API języka Vala do biblioteki PackageKitu
 Group:		Development/Libraries
 Requires:	%{name}-devel = %{version}-%{release}
 Requires:	vala >= 2:0.16
-%if "%{_rpmversion}" >= "5"
+%if "%{_rpmversion}" >= "4.6"
 BuildArch:	noarch
 %endif
 
@@ -169,7 +176,7 @@ Summary:	PackageKit library API documentation
 Summary(pl.UTF-8):	Dokumentacja API biblioteki PackageKit
 Group:		Documentation
 Requires:	gtk-doc-common
-%if "%{_rpmversion}" >= "5"
+%if "%{_rpmversion}" >= "4.6"
 BuildArch:	noarch
 %endif
 
@@ -199,6 +206,7 @@ Summary:	PackageKit APTcc backend
 Summary(pl.UTF-8):	Backend PackageKit APTcc
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
+Requires:	AppStream >= 0.11
 Provides:	%{name}-backend = %{version}-%{release}
 
 %description backend-aptcc
@@ -207,6 +215,23 @@ A backend for PackageKit to enable APT support via C++ API.
 %description backend-aptcc -l pl.UTF-8
 Backend PackageKit dodający obsługę zarządcy pakietów APT poprzez API
 C++.
+
+%package backend-dnf
+Summary:	PackageKit dnf backend
+Summary(pl.UTF-8):	Backend PackageKit oparty na bibliotece dnfhif
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Provides:	%{name}-backend = %{version}-%{release}
+Obsoletes:	PackageKit-backend-hawkey
+Obsoletes:	PackageKit-backend-hif
+
+%description backend-dnf
+A backend for PackageKit to enable RPM packages support via dnf
+library (used in Fedora).
+
+%description backend-dnf -l pl.UTF-8
+Backend PackageKit dodający obsługę pakietów RPM poprzez bibliotekę
+dnf (używaną w dystrybucji Fedora).
 
 %package backend-entropy
 Summary:	PackageKit Entropy backend
@@ -225,35 +250,20 @@ Entropy package manager.
 Backend PackageKit dodający obsługę pakietów dystrybucji Sabayon przy
 użyciu zarządcy pakietów Entropy.
 
-%package backend-hif
-Summary:	PackageKit hif backend
-Summary(pl.UTF-8):	Backend PackageKit oparty na bibliotece hif
+%package backend-nix
+Summary:	PackageKit Nix backend
+Summary(pl.UTF-8):	Backend PackageKit oparty na zarządcy pakietów Nix
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
-Requires:	libhif >= 0.1.7
-Provides:	%{name}-backend = %{version}-%{release}
-Obsoletes:	PackageKit-backend-hawkey
-
-%description backend-hif
-A backend for PackageKit to enable RPM packages support via hif
-library (used in Fedora).
-
-%description backend-hif -l pl.UTF-8
-Backend PackageKit dodający obsługę pakietów RPM poprzez bibliotekę
-hif (używaną w dystrybucji Fedora).
-
-%package backend-katja
-Summary:	PackageKit Katja backend
-Summary(pl.UTF-8):	Backend PackageKit Katja
-Group:		Libraries
-Requires:	%{name} = %{version}-%{release}
+Requires:	nix >= 1.12
 Provides:	%{name}-backend = %{version}-%{release}
 
-%description backend-katja
-Katja backend for PackageKit to enable Slackware repositories support.
+%description backend-nix
+A backend for PackageKit to enable Nix packages support (used in
+NixOS).
 
-%description backend-katja -l pl.UTF-8
-Backend PackageKit Katja dodający obsługę repozytoriów Slackware.
+%description backend-nix -l pl.UTF-8
+Backend PackageKit dodający obsługę pakietów Nix (używanych w NixOS).
 
 %package backend-pisi
 Summary:	PackageKit PiSi backend
@@ -319,6 +329,20 @@ A backend for PackageKit to enable FreeBSD Ports support.
 %description backend-ports -l pl.UTF-8
 Backend PackageKit dodający obsługę portów systemu FreeBSD.
 
+%package backend-slack
+Summary:	PackageKit Slack backend
+Summary(pl.UTF-8):	Backend PackageKit Slack
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Provides:	%{name}-backend = %{version}-%{release}
+Obsoletes:	PackageKit-backend-katja
+
+%description backend-slack
+Slack backend for PackageKit to enable Slackware repositories support.
+
+%description backend-slack -l pl.UTF-8
+Backend PackageKit Slack dodający obsługę repozytoriów Slackware.
+
 %package backend-urpmi
 Summary:	PackageKit URPMI backend
 Summary(pl.UTF-8):	Backend PackageKit URPMI
@@ -334,6 +358,24 @@ package manager (originated in Mandriva).
 %description backend-urpmi -l pl.UTF-8
 Backend PackageKit dodający obsługę pakietów RPM poprzez zarządcę
 URPMI (pochodzącego z dystrybucji Mandriva).
+
+%package backend-yum
+Summary:	PackageKit YUM backend
+Summary(pl.UTF-8):	Backend PackageKit YUM
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	python-packagekit = %{version}-%{release}
+#Requires:	python-urlgrabber
+#Requires:	python-rpm # ? import rpmUtils
+#Requires:	python-sqlite3
+#Requires:	python-yum
+Provides:	%{name}-backend = %{version}-%{release}
+
+%description backend-yum
+A backend for PackageKit to enable RPM packages support using Yum.
+
+%description backend-yum -l pl.UTF-8
+Backend PackageKit dodający obsługę pakietów RPM przy użyciu Yuma.
 
 %package backend-zypp
 Summary:	PackageKit Zypp backend
@@ -398,7 +440,7 @@ Summary(pl.UTF-8):	Bashowe uzupełnianie parametrów dla poleceń konsolowych Pa
 Group:		Applications/Shells
 Requires:	%{name} = %{version}-%{release}
 Requires:	bash-completion >= 2
-%if "%{_rpmversion}" >= "5"
+%if "%{_rpmversion}" >= "4.6"
 BuildArch:	noarch
 %endif
 
@@ -421,20 +463,6 @@ PackageKit Python bindings.
 
 %description -n python-packagekit -l pl.UTF-8
 Wiązania PackageKit dla Pythona.
-
-%package -n browser-plugin-packagekit
-Summary:	PackageKit's browser plugin
-Summary(pl.UTF-8):	Wtyczka PackageKit do przeglądarek WWW
-Group:		X11/Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	browser-plugins >= 2.0
-Requires:	browser-plugins(%{_target_base_arch})
-
-%description -n browser-plugin-packagekit
-PackageKit's plugin for browsers.
-
-%description -n browser-plugin-packagekit -l pl.UTF-8
-Wtyczka PackageKit do przeglądarek WWW.
 
 %prep
 %setup -q
@@ -463,19 +491,19 @@ Wtyczka PackageKit do przeglądarek WWW.
 	--enable-bash-completion=%{bash_compdir} \
 	%{__enable_disable alpm} \
 	%{__enable_disable apt aptcc} \
-	%{__enable_disable browser browser-plugin} \
+	%{__enable_disable dnf} \
 	%{__enable_disable entropy} \
-	%{__enable_disable hif} \
-	%{__enable_disable katja} \
+	%{__enable_disable nix} \
 	%{__enable_disable pisi} \
 	%{__enable_disable poldek} \
 	%{__enable_disable portage} \
 	%{__enable_disable ports} \
+	%{__enable_disable slack} \
 	%{__enable_disable urpmi} \
+	%{__enable_disable yum} \
 	%{__enable_disable zypp} \
-	--with-html-dir=%{_gtkdocdir} \
-	--with-mozilla-plugin-dir=%{_browserpluginsdir} \
-	--with-security-framework=polkit
+	--with-html-dir=%{_gtkdocdir}
+
 %{__make}
 
 %install
@@ -493,10 +521,6 @@ ln -s pk-gstreamer-install $RPM_BUILD_ROOT%{_libdir}/gst-install-plugins-helper
 %{__rm} $RPM_BUILD_ROOT%{_libdir}/*.la
 %{__rm} -r $RPM_BUILD_ROOT%{_datadir}/PackageKit/helpers/test_spawn
 
-%if %{with browser}
-%{__rm} $RPM_BUILD_ROOT%{_browserpluginsdir}/*.{la,a}
-%endif
-
 %py_postclean
 
 %find_lang %{name}
@@ -512,14 +536,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %post	libs -p /sbin/ldconfig
 %postun	libs -p /sbin/ldconfig
-
-%post -n browser-plugin-packagekit
-%update_browser_plugins
-
-%postun -n browser-plugin-packagekit
-if [ "$1" = 0 ]; then
-	%update_browser_plugins
-fi
 
 %files -f %{name}.lang
 %defattr(644,root,root,755)
@@ -606,6 +622,12 @@ fi
 %{_datadir}/PackageKit/helpers/aptcc/pkconffile.nodiff
 %endif
 
+%if %{with dnf}
+%files backend-dnf
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_dnf.so
+%endif
+
 %if %{with entropy}
 %files backend-entropy
 %defattr(644,root,root,755)
@@ -614,19 +636,10 @@ fi
 %attr(755,root,root) %{_datadir}/PackageKit/helpers/entropy/entropyBackend.py
 %endif
 
-%if %{with hif}
-%files backend-hif
+%if %{with nix}
+%files backend-nix
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_hif.so
-%endif
-
-%if %{with katja}
-%files backend-katja
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_katja.so
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/Katja.conf
-%dir /var/cache/PackageKit/metadata
-%ghost /var/cache/PackageKit/metadata/metadata.db
+%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_nix.so
 %endif
 
 %if %{with pisi}
@@ -660,6 +673,15 @@ fi
 %{_datadir}/PackageKit/helpers/ports/ruby_packagekit
 %endif
 
+%if %{with slack}
+%files backend-slack
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_slack.so
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/Slackware.conf
+%dir /var/cache/PackageKit/metadata
+%ghost /var/cache/PackageKit/metadata/metadata.db
+%endif
+
 %if %{with urpmi}
 %files backend-urpmi
 %defattr(644,root,root,755)
@@ -668,6 +690,14 @@ fi
 %attr(755,root,root) %{_datadir}/PackageKit/helpers/urpmi/urpmi-dispatched-backend.pl
 %{_datadir}/PackageKit/helpers/urpmi/perl_packagekit
 %{_datadir}/PackageKit/helpers/urpmi/urpmi_backend
+%endif
+
+%if %{with yum}
+%files backend-yum
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_yum.so
+%{_datadir}/PackageKit/helpers/yum
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/Yum.conf
 %endif
 
 %if %{with zypp}
@@ -701,10 +731,4 @@ fi
 %defattr(644,root,root,755)
 %dir %{py_sitescriptdir}/packagekit
 %{py_sitescriptdir}/packagekit/*.py[co]
-%endif
-
-%if %{with browser}
-%files -n browser-plugin-packagekit
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_browserpluginsdir}/packagekit-plugin.so
 %endif
