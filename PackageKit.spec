@@ -5,39 +5,37 @@
 # Conditional build:
 %bcond_without	doc		# build without docs
 %bcond_without	introspection	# gobject introspection, time to time broken
+%bcond_without	static_libs	# static library
+%bcond_without	python		# Python binding (used by entropy and portage backends)
+%bcond_without	vala		# Vala binding
+# backends
 %bcond_with	alpm		# ALPM (Arch Linux package manager) backend
 %bcond_with	apt		# APT (Debian/Ubuntu) backend using C++ API
 %bcond_with	dnf		# DNF (Fedora/RHEL) backend
 %bcond_with	entropy		# Entropy (Sabayon) backend (Python)
-%bcond_with	nix		# Nix (NixOS) backend
-%bcond_with	pisi		# PiSi (Pardus) backend (Python)
+%bcond_with	nix		# Nix (NixOS) backend [broken as of 1.2.0]
 %bcond_without	poldek		# Poldek (PLD) backend
 %bcond_with	portage		# portage (Gentoo) backend (Python)
-%bcond_with	ports		# ports (FreeBSD) backend (Ruby)
 %bcond_with	slack		# Slack (Slackware) backend
-%bcond_with	urpmi		# urpmi (Mandriva/Mageia) backend (Perl)
-%bcond_with	yum		# YUM (Fedora) backend (Python)
-%bcond_with	zypp		# ZYPP (openSUSE/SLE) backend
-%bcond_without	python		# Python binding (only for a few backends)
-%bcond_without	vala		# Vala binding
+%bcond_with	zypp		# ZYPP (openSUSE/SLE) backend [broken as of 1.2.0]
 
-# Python binding is built when building any python binding
-%if %{without entropy} && %{without pisi} && %{without ports} && %{without yum}
-%undefine	with_python
+%if %{without python}
+%undefine	with_entropy
+%undefine	with_portage
 %endif
 
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	1.1.13
+Version:	1.2.0
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	https://www.freedesktop.org/software/PackageKit/releases/%{name}-%{version}.tar.xz
-# Source0-md5:	7635892baa047639cf5590d6f57324c1
+# Source0-md5:	a37ba4a460ab15ac4374bfc0e792d377
 Patch0:		%{name}-poldek.patch
 Patch1:		%{name}-bashcomp.patch
-
+Patch2:		%{name}-meson.patch
 Patch3:		consolekit-fallback.patch
 URL:		https://www.freedesktop.org/software/PackageKit/
 %{?with_apt:BuildRequires:	AppStream-devel >= 0.11}
@@ -46,8 +44,6 @@ BuildRequires:	NetworkManager-devel >= 0.6.5
 %{?with_alpm:BuildRequires:	alpm-devel >= 5.2}
 %{?with_dnf:BuildRequires:	appstream-glib-devel}
 %{?with_apt:BuildRequires:	apt-devel >= 1.7}
-BuildRequires:	autoconf >= 2.65
-BuildRequires:	automake >= 1:1.11
 BuildRequires:	connman-devel
 %{?with_slack:BuildRequires:	curl-devel}
 BuildRequires:	dbus-devel >= 1.2.0
@@ -60,19 +56,18 @@ BuildRequires:	glib2-devel >= 1:2.54.0
 %{?with_introspection:BuildRequires:	gobject-introspection-devel >= 0.9.9}
 BuildRequires:	gstreamer-devel >= 1.0.0
 BuildRequires:	gstreamer-plugins-base-devel >= 1.0.0
-BuildRequires:	gtk+2-devel >= 2:2.14.0
 BuildRequires:	gtk+3-devel >= 3.0.0
 %{?with_doc:BuildRequires:	gtk-doc >= 1.11}
-BuildRequires:	intltool >= 0.35.0
 BuildRequires:	libarchive-devel
-%{?with_dnf:BuildRequires:	libdnf-devel >= 0.22.0}
+%{?with_dnf:BuildRequires:	libdnf-devel >= 0.43.1}
 %if %{with apt} || %{with nix}
 BuildRequires:	libstdc++-devel >= 6:4.7
 %endif
 %{?with_slack:BuildRequires:	libstdc++-devel >= 6:5}
-BuildRequires:	libtool >= 2:2
 BuildRequires:	libxslt-progs
 %{?with_zypp:BuildRequires:	libzypp-devel >= 15}
+BuildRequires:	meson >= 0.47.0
+BuildRequires:	ninja >= 1.5
 # nix-expr nix-main nix-store
 %{?with_nix:BuildRequires:	nix-devel >= 1.12}
 BuildRequires:	pango-devel
@@ -86,7 +81,8 @@ BuildRequires:	polkit-devel >= 0.114
 BuildRequires:	readline-devel
 %{?with_dnf:BuildRequires:	rpm-devel >= 4.?}
 BuildRequires:	rpm-pythonprov
-BuildRequires:	rpmbuild(macros) >= 1.311
+BuildRequires:	rpmbuild(macros) >= 1.736
+BuildRequires:	sed >= 4.0
 BuildRequires:	sqlite3-devel >= 3
 BuildRequires:	systemd-devel >= 1:213
 BuildRequires:	tar >= 1:1.22
@@ -99,7 +95,10 @@ Requires:	%{name}-libs = %{version}-%{release}
 Requires:	crondaemon
 Requires:	polkit >= 0.114
 Suggests:	ConsoleKit-x11
+Obsoletes:	PackageKit-backend-pisi
+Obsoletes:	PackageKit-backend-ports
 Obsoletes:	PackageKit-backend-smart
+Obsoletes:	PackageKit-backend-urpmi
 Obsoletes:	PackageKit-backend-yum
 Obsoletes:	PackageKit-docs < 0.8.4
 Obsoletes:	pm-utils-packagekit
@@ -265,24 +264,6 @@ NixOS).
 %description backend-nix -l pl.UTF-8
 Backend PackageKit dodający obsługę pakietów Nix (używanych w NixOS).
 
-%package backend-pisi
-Summary:	PackageKit PiSi backend
-Summary(pl.UTF-8):	Backend PackageKit PiSi
-Group:		Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	python-packagekit = %{version}-%{release}
-#Requires:	python-piksemel
-#Requires:	python-pisi
-Provides:	%{name}-backend = %{version}-%{release}
-
-%description backend-pisi
-A backend for PackageKit to enable PiSi packages support. PiSi
-packages are originated in Pardus distribution.
-
-%description backend-pisi -l pl.UTF-8
-Backend PackageKit dodający obsługę pakietów PiSi. Pakiety PiSi
-wywodzą się z dystrybucji Pardus.
-
 %package backend-poldek
 Summary:	PackageKit Poldek backend
 Summary(pl.UTF-8):	Backend PackageKit oparty na Poldku
@@ -315,20 +296,6 @@ A backend for PackageKit to enable Gentoo Portage support.
 Backend PackageKit dodający obsługę systemu Portage dystrybucji
 Gentoo.
 
-%package backend-ports
-Summary:	PackageKit Ports backend
-Summary(pl.UTF-8):	Backend PackageKit Ports
-Group:		Libraries
-Requires:	%{name} = %{version}-%{release}
-#Requires:	ruby-pkgtools
-Provides:	%{name}-backend = %{version}-%{release}
-
-%description backend-ports
-A backend for PackageKit to enable FreeBSD Ports support.
-
-%description backend-ports -l pl.UTF-8
-Backend PackageKit dodający obsługę portów systemu FreeBSD.
-
 %package backend-slack
 Summary:	PackageKit Slack backend
 Summary(pl.UTF-8):	Backend PackageKit Slack
@@ -342,40 +309,6 @@ Slack backend for PackageKit to enable Slackware repositories support.
 
 %description backend-slack -l pl.UTF-8
 Backend PackageKit Slack dodający obsługę repozytoriów Slackware.
-
-%package backend-urpmi
-Summary:	PackageKit URPMI backend
-Summary(pl.UTF-8):	Backend PackageKit URPMI
-Group:		Libraries
-Requires:	%{name} = %{version}-%{release}
-#Requires:	perl-URPM
-Provides:	%{name}-backend = %{version}-%{release}
-
-%description backend-urpmi
-A backend for PackageKit to enable RPM packages support through URPMI
-package manager (originated in Mandriva).
-
-%description backend-urpmi -l pl.UTF-8
-Backend PackageKit dodający obsługę pakietów RPM poprzez zarządcę
-URPMI (pochodzącego z dystrybucji Mandriva).
-
-%package backend-yum
-Summary:	PackageKit YUM backend
-Summary(pl.UTF-8):	Backend PackageKit YUM
-Group:		Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	python-packagekit = %{version}-%{release}
-#Requires:	python-urlgrabber
-#Requires:	python-rpm # ? import rpmUtils
-#Requires:	python-sqlite3
-#Requires:	python-yum
-Provides:	%{name}-backend = %{version}-%{release}
-
-%description backend-yum
-A backend for PackageKit to enable RPM packages support using Yum.
-
-%description backend-yum -l pl.UTF-8
-Backend PackageKit dodający obsługę pakietów RPM przy użyciu Yuma.
 
 %package backend-zypp
 Summary:	PackageKit Zypp backend
@@ -398,7 +331,7 @@ Summary:	GStreamer codecs installer
 Summary(pl.UTF-8):	Instalator kodeków GStreamera
 Group:		Applications
 Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-gtk-module = %{version}-%{release}
+Requires:	%{name}-gtk3-module = %{version}-%{release}
 
 %description gstreamer-plugin
 The PackageKit GStreamer plugin allows any GStreamer application to
@@ -408,23 +341,11 @@ install codecs from configured repositories using PackageKit.
 Wtyczka GStreamer pozwala każdej aplikacji używającej GStreamera
 zainstalować kodeki ze skonfigurowanych źródeł PackageKit.
 
-%package gtk-module
-Summary:	GTK+ module to detect and install missing fonts
-Summary(pl.UTF-8):	Moduł GTK+ do wykrywania i instalowania brakujących czcionek
-Group:		X11/Libraries
-
-%description gtk-module
-The PackageKit GTK+ module allows any pango application to install
-missing fonts from configured repositories using PackageKit.
-
-%description gtk-module -l pl.UTF-8
-Moduł GTK+ pozwala każdej aplikacji używającej pango zainstalować
-brakującą czcionkę ze skonfigurowanych źródeł PackageKit.
-
 %package gtk3-module
 Summary:	GTK+ 3.x module to detect and install missing fonts
 Summary(pl.UTF-8):	Moduł GTK+ 3.x do wykrywania i instalowania brakujących czcionek
 Group:		X11/Libraries
+Obsoletes:	PackageKit-gtk-module < 1.2.0
 
 %description gtk3-module
 The PackageKit GTK+ 3.x module allows any pango application to install
@@ -468,60 +389,52 @@ Wiązania PackageKit dla Pythona.
 %setup -q
 %patch0 -p1
 %patch1 -p1
-
+%patch2 -p1
 %patch3 -p1
 
-%build
-%if %{with doc}
-%{__gtkdocize}
+%if %{with static_libs}
+%{__sed} -i -e '/^packagekit_glib2_library =/ s/shared_library/library/' lib/packagekit-glib2/meson.build
 %endif
-%{__intltoolize}
-%{__libtoolize}
-%{__aclocal} -I m4
-%{__autoconf}
-%{__autoheader}
-%{__automake}
-%{?with_zypp:CPPFLAGS="%{rpmcppflags} -D_RPM_5 -I/usr/include/rpm"}
-%configure \
-	--disable-command-not-found \
-	--disable-dummy \
-	%{!?with_doc:--disable-gtk-doc} \
-	%{!?with_introspection:--disable-introspection} \
-	--disable-silent-rules \
-	--enable-bash-completion=%{bash_compdir} \
-	%{__enable_disable alpm} \
-	%{__enable_disable apt aptcc} \
-	%{__enable_disable dnf} \
-	%{__enable_disable entropy} \
-	%{__enable_disable nix} \
-	%{__enable_disable pisi} \
-	%{__enable_disable poldek} \
-	%{__enable_disable portage} \
-	%{__enable_disable ports} \
-	%{__enable_disable slack} \
-	%{__enable_disable urpmi} \
-	%{__enable_disable yum} \
-	%{__enable_disable zypp} \
-	--with-html-dir=%{_gtkdocdir}
 
-%{__make}
+%build
+%{?with_zypp:CPPFLAGS="%{rpmcppflags} -D_RPM_5 -I/usr/include/rpm"}
+%meson build \
+	-Dbash_command_not_found=false \
+	-Dbash_completion_dir=%{bash_compdir} \
+	%{!?with_introspection:-Dgobject_introspection=false} \
+	%{?with_doc:-Dgtk_doc=true} \
+	-Dpackaging_backend=dummy%{?with_alpm:,alpm}%{?with_apt:,aptcc}%{?with_dnf:,dnf}%{?with_entropy:,entropy}%{?with_poldek:,poldek}%{?with_portage:,portage}%{?with_slack:,slack}%{?with_zypp:,zypp}%{?with_nix:,nix} \
+	%{!?with_python:-Dpython_backend=false} \
+	-Dpythonpackagedir=%{py_sitescriptdir} \
+	-Dsystemdsystemunitdir=%{systemdunitdir}
+
+# TODO:
+# -Ddnf_vendor=
+# -Dpackagekit_user=
+
+%ninja_build -C build
 
 %install
 rm -rf $RPM_BUILD_ROOT
+install -d $RPM_BUILD_ROOT/var/cache/PackageKit/downloads
 
-%{__make} install \
-	DESTDIR=$RPM_BUILD_ROOT
+%ninja_install -C build
+
+%{__rm} $RPM_BUILD_ROOT%{_libdir}/packagekit-backend/libpk_backend_test_*.so
 
 # use pk-gstreamer-install as codec installer
-ln -s pk-gstreamer-install $RPM_BUILD_ROOT%{_libdir}/gst-install-plugins-helper
+ln -s pk-gstreamer-install $RPM_BUILD_ROOT%{_libexecdir}/gst-install-plugins-helper
 
-%{__rm} $RPM_BUILD_ROOT%{_libdir}/gtk-{2,3}.0/modules/*.{la,a}
-%{__rm} $RPM_BUILD_ROOT%{_libdir}/packagekit-backend/*.{la,a}
-%{__rm} $RPM_BUILD_ROOT%{_libdir}/packagekit-backend/libpk_backend_test_*.so
-%{__rm} $RPM_BUILD_ROOT%{_libdir}/*.la
-%{__rm} -r $RPM_BUILD_ROOT%{_datadir}/PackageKit/helpers/test_spawn
+install -d $RPM_BUILD_ROOT%{systemdunitdir}/system-update.target.wants
+ln -sf ../packagekit-offline-update.service \
+        $RPM_BUILD_ROOT%{systemdunitdir}/system-update.target.wants/packagekit-offline-update.service
+
+%if %{with python}
+%py_comp $RPM_BUILD_ROOT%{py_sitescriptdir}
+%py_ocomp $RPM_BUILD_ROOT%{py_sitescriptdir}
 
 %py_postclean
+%endif
 
 %find_lang %{name}
 
@@ -547,6 +460,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libexecdir}/packagekitd
 %attr(755,root,root) %{_libexecdir}/pk-offline-update
 %dir %{_libdir}/packagekit-backend
+%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_dummy.so
 %dir %{_sysconfdir}/PackageKit
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/PackageKit.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/Vendor.conf
@@ -594,6 +508,7 @@ rm -rf $RPM_BUILD_ROOT
 %if %{with vala}
 %files -n vala-packagekit
 %defattr(644,root,root,755)
+%{_datadir}/vala/vapi/packagekit-glib2.deps
 %{_datadir}/vala/vapi/packagekit-glib2.vapi
 %endif
 
@@ -642,14 +557,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_nix.so
 %endif
 
-%if %{with pisi}
-%files backend-pisi
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_pisi.so
-%dir %{_datadir}/PackageKit/helpers/pisi
-%attr(755,root,root) %{_datadir}/PackageKit/helpers/pisi/pisiBackend.py
-%endif
-
 %if %{with poldek}
 %files backend-poldek
 %defattr(644,root,root,755)
@@ -664,15 +571,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_datadir}/PackageKit/helpers/portage/portageBackend.py
 %endif
 
-%if %{with ports}
-%files backend-ports
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_ports.so
-%dir %{_datadir}/PackageKit/helpers/ports
-%attr(755,root,root) %{_datadir}/PackageKit/helpers/ports/portsBackend.rb
-%{_datadir}/PackageKit/helpers/ports/ruby_packagekit
-%endif
-
 %if %{with slack}
 %files backend-slack
 %defattr(644,root,root,755)
@@ -680,24 +578,6 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/Slackware.conf
 %dir /var/cache/PackageKit/metadata
 %ghost /var/cache/PackageKit/metadata/metadata.db
-%endif
-
-%if %{with urpmi}
-%files backend-urpmi
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_urpmi.so
-%dir %{_datadir}/PackageKit/helpers/urpmi
-%attr(755,root,root) %{_datadir}/PackageKit/helpers/urpmi/urpmi-dispatched-backend.pl
-%{_datadir}/PackageKit/helpers/urpmi/perl_packagekit
-%{_datadir}/PackageKit/helpers/urpmi/urpmi_backend
-%endif
-
-%if %{with yum}
-%files backend-yum
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_yum.so
-%{_datadir}/PackageKit/helpers/yum
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/Yum.conf
 %endif
 
 %if %{with zypp}
@@ -709,16 +589,12 @@ rm -rf $RPM_BUILD_ROOT
 %files gstreamer-plugin
 %defattr(644,root,root,755)
 %doc contrib/gstreamer-plugin/README
-%attr(755,root,root) %{_libdir}/gst-install-plugins-helper
+%attr(755,root,root) %{_libexecdir}/gst-install-plugins-helper
 %attr(755,root,root) %{_libexecdir}/pk-gstreamer-install
-
-%files gtk-module
-%defattr(644,root,root,755)
-%doc contrib/gtk-module/{GLASS.txt,README}
-%attr(755,root,root) %{_libdir}/gtk-2.0/modules/libpk-gtk-module.so
 
 %files gtk3-module
 %defattr(644,root,root,755)
+%doc contrib/gtk-module/{GLASS.txt,README}
 %attr(755,root,root) %{_libdir}/gtk-3.0/modules/libpk-gtk-module.so
 %{_libdir}/gnome-settings-daemon-3.0/gtk-modules/pk-gtk-module.desktop
 

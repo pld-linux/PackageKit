@@ -1,0 +1,20 @@
+--- PackageKit-1.2.0/backends/entropy/meson.build.orig	2020-05-04 14:21:36.494296600 +0200
++++ PackageKit-1.2.0/backends/entropy/meson.build	2020-05-08 18:37:34.869588729 +0200
+@@ -15,6 +15,6 @@
+ 
+ install_data(
+   'entropyBackend.py',
+-  install_dir: join_paths(get_option('datadir'), 'PackageKit', 'helpers', 'entropy')
++  install_dir: join_paths(get_option('datadir'), 'PackageKit', 'helpers', 'entropy'),
+   install_mode: 'rwxr--r--'
+ )
+--- PackageKit-1.2.0/backends/portage/meson.build.orig	2020-05-04 14:21:36.495296500 +0200
++++ PackageKit-1.2.0/backends/portage/meson.build	2020-05-08 18:49:08.452497934 +0200
+@@ -15,6 +15,6 @@
+ 
+ install_data(
+   'portageBackend.py',
+-  install_dir: join_paths(get_option('datadir'), 'PackageKit', 'helpers', 'portage')
++  install_dir: join_paths(get_option('datadir'), 'PackageKit', 'helpers', 'portage'),
+   install_mode: 'rwxr--r--'
+ )
