@@ -422,6 +422,11 @@ install -d $RPM_BUILD_ROOT/var/cache/PackageKit/downloads
 
 %{__rm} $RPM_BUILD_ROOT%{_libdir}/packagekit-backend/libpk_backend_test_*.so
 
+%if %{without apt} && %{without entropy} && %{without portage}
+# common dir not created if no users built with PackageKit
+install -d $RPM_BUILD_ROOT%{_datadir}/PackageKit/helpers
+%endif
+
 # use pk-gstreamer-install as codec installer
 ln -s pk-gstreamer-install $RPM_BUILD_ROOT%{_libexecdir}/gst-install-plugins-helper
 
