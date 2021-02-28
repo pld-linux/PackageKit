@@ -160,9 +160,7 @@ Summary(pl.UTF-8):	API języka Vala do biblioteki PackageKitu
 Group:		Development/Libraries
 Requires:	%{name}-devel = %{version}-%{release}
 Requires:	vala >= 2:0.16
-%if "%{_rpmversion}" >= "4.6"
 BuildArch:	noarch
-%endif
 
 %description -n vala-packagekit
 Vala API for PackageKit library.
@@ -175,9 +173,7 @@ Summary:	PackageKit library API documentation
 Summary(pl.UTF-8):	Dokumentacja API biblioteki PackageKit
 Group:		Documentation
 Requires:	gtk-doc-common
-%if "%{_rpmversion}" >= "4.6"
 BuildArch:	noarch
-%endif
 
 %description apidocs
 PackageKit library API documentation.
@@ -361,9 +357,7 @@ Summary(pl.UTF-8):	Bashowe uzupełnianie parametrów dla poleceń konsolowych Pa
 Group:		Applications/Shells
 Requires:	%{name} = %{version}-%{release}
 Requires:	bash-completion >= 2
-%if "%{_rpmversion}" >= "4.6"
 BuildArch:	noarch
-%endif
 
 %description -n bash-completion-packagekit
 This package provides bash-completion for PackageKit console commands.
