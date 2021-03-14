@@ -11,7 +11,7 @@
 # backends
 %bcond_with	alpm		# ALPM (Arch Linux package manager) backend
 %bcond_with	apt		# APT (Debian/Ubuntu) backend using C++ API
-%bcond_with	dnf		# DNF (Fedora/RHEL) backend
+%bcond_with	dnf		# DNF (Fedora/RHEL/Mageia/OpenMandriva/OpenSUSE/Rosa) backend
 %bcond_with	entropy		# Entropy (Sabayon) backend (Python)
 %bcond_with	nix		# Nix (NixOS) backend [broken as of 1.2.0]
 %bcond_without	poldek		# Poldek (PLD) backend
@@ -37,12 +37,12 @@ Patch0:		%{name}-poldek.patch
 Patch2:		%{name}-meson.patch
 Patch3:		consolekit-fallback.patch
 URL:		https://www.freedesktop.org/software/PackageKit/
-%{?with_apt:BuildRequires:	AppStream-devel >= 0.11}
+%{?with_apt:BuildRequires:	AppStream-devel >= 0.12}
 BuildRequires:	NetworkManager-devel >= 0.6.5
 # pkgconfig(libalpm) >= 12.0.0
 %{?with_alpm:BuildRequires:	alpm-devel >= 5.2}
 %{?with_dnf:BuildRequires:	appstream-glib-devel}
-%{?with_apt:BuildRequires:	apt-devel >= 1.7}
+%{?with_apt:BuildRequires:	apt-devel >= 1.9.2}
 BuildRequires:	bash-completion-devel >= 2.0
 BuildRequires:	connman-devel
 %{?with_slack:BuildRequires:	curl-devel}
@@ -80,7 +80,7 @@ BuildRequires:	polkit-devel >= 0.114
 %{?with_python:BuildRequires:	python-devel >= 1:2.7}
 BuildRequires:	readline-devel
 BuildRequires:	rpm-build >= 4.6
-%{?with_dnf:BuildRequires:	rpm-devel >= 4.?}
+%{?with_dnf:BuildRequires:	rpm-devel >= 1:4.6}
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.736
 BuildRequires:	sed >= 4.0
@@ -202,7 +202,8 @@ Summary:	PackageKit APTcc backend
 Summary(pl.UTF-8):	Backend PackageKit APTcc
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
-Requires:	AppStream >= 0.11
+Requires:	AppStream >= 0.12
+Requires:	apt >= 1.9.2
 Provides:	%{name}-backend = %{version}-%{release}
 
 %description backend-aptcc
@@ -217,6 +218,8 @@ Summary:	PackageKit dnf backend
 Summary(pl.UTF-8):	Backend PackageKit oparty na bibliotece dnfhif
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
+Requires:	libdnf >= 0.43.1
+Requires:	rpm >= 1:4.6
 Provides:	%{name}-backend = %{version}-%{release}
 Obsoletes:	PackageKit-backend-hawkey < 1.0
 Obsoletes:	PackageKit-backend-hif < 1.2
