@@ -27,14 +27,13 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	1.2.1
+Version:	1.2.2
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	https://www.freedesktop.org/software/PackageKit/releases/%{name}-%{version}.tar.xz
-# Source0-md5:	a0a1f7c45d25901cf4ff4318405610c3
+# Source0-md5:	2bfa2687bcc4e189bb90e2228c11e558
 Patch0:		%{name}-poldek.patch
-Patch1:		%{name}-bashcomp.patch
 Patch2:		%{name}-meson.patch
 Patch3:		consolekit-fallback.patch
 URL:		https://www.freedesktop.org/software/PackageKit/
@@ -44,6 +43,7 @@ BuildRequires:	NetworkManager-devel >= 0.6.5
 %{?with_alpm:BuildRequires:	alpm-devel >= 5.2}
 %{?with_dnf:BuildRequires:	appstream-glib-devel}
 %{?with_apt:BuildRequires:	apt-devel >= 1.7}
+BuildRequires:	bash-completion-devel >= 2.0
 BuildRequires:	connman-devel
 %{?with_slack:BuildRequires:	curl-devel}
 BuildRequires:	dbus-devel >= 1.2.0
@@ -66,19 +66,20 @@ BuildRequires:	libstdc++-devel >= 6:4.7
 %{?with_slack:BuildRequires:	libstdc++-devel >= 6:5}
 BuildRequires:	libxslt-progs
 %{?with_zypp:BuildRequires:	libzypp-devel >= 15}
-BuildRequires:	meson >= 0.47.0
+BuildRequires:	meson >= 0.50
 BuildRequires:	ninja >= 1.5
 # nix-expr nix-main nix-store
 %{?with_nix:BuildRequires:	nix-devel >= 1.12}
 BuildRequires:	pango-devel
 BuildRequires:	pkgconfig
-# when released; just to detect which reboot modes to use (library not linked)
+# just to detect which reboot modes to use (library not linked)
 #BuildRequires:	plymouth-devel >= 0.9.5
 %{?with_poldek:BuildRequires:	poldek-devel >= 0.30-1.rc6.4}
 BuildRequires:	polkit-devel >= 0.114
 # or 1:3.2
 %{?with_python:BuildRequires:	python-devel >= 1:2.7}
 BuildRequires:	readline-devel
+BuildRequires:	rpm-build >= 4.6
 %{?with_dnf:BuildRequires:	rpm-devel >= 4.?}
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.736
@@ -95,13 +96,13 @@ Requires:	%{name}-libs = %{version}-%{release}
 Requires:	crondaemon
 Requires:	polkit >= 0.114
 Suggests:	ConsoleKit-x11
-Obsoletes:	PackageKit-backend-pisi
-Obsoletes:	PackageKit-backend-ports
-Obsoletes:	PackageKit-backend-smart
-Obsoletes:	PackageKit-backend-urpmi
-Obsoletes:	PackageKit-backend-yum
+Obsoletes:	PackageKit-backend-pisi < 1.2
+Obsoletes:	PackageKit-backend-ports < 1.2
+Obsoletes:	PackageKit-backend-smart < 1.0
+Obsoletes:	PackageKit-backend-urpmi < 1.2
+Obsoletes:	PackageKit-backend-yum < 1.2
 Obsoletes:	PackageKit-docs < 0.8.4
-Obsoletes:	pm-utils-packagekit
+Obsoletes:	pm-utils-packagekit < 0.8.15
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -217,8 +218,8 @@ Summary(pl.UTF-8):	Backend PackageKit oparty na bibliotece dnfhif
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Provides:	%{name}-backend = %{version}-%{release}
-Obsoletes:	PackageKit-backend-hawkey
-Obsoletes:	PackageKit-backend-hif
+Obsoletes:	PackageKit-backend-hawkey < 1.0
+Obsoletes:	PackageKit-backend-hif < 1.2
 
 %description backend-dnf
 A backend for PackageKit to enable RPM packages support via dnf
@@ -298,7 +299,7 @@ Summary(pl.UTF-8):	Backend PackageKit Slack
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Provides:	%{name}-backend = %{version}-%{release}
-Obsoletes:	PackageKit-backend-katja
+Obsoletes:	PackageKit-backend-katja < 1.2
 
 %description backend-slack
 Slack backend for PackageKit to enable Slackware repositories support.
@@ -382,7 +383,6 @@ Wiązania PackageKit dla Pythona.
 %prep
 %setup -q
 %patch0 -p1
-%patch1 -p1
 %patch2 -p1
 %patch3 -p1
 
@@ -394,7 +394,6 @@ Wiązania PackageKit dla Pythona.
 %{?with_zypp:CPPFLAGS="%{rpmcppflags} -D_RPM_5 -I/usr/include/rpm"}
 %meson build \
 	-Dbash_command_not_found=false \
-	-Dbash_completion_dir=%{bash_compdir} \
 	%{!?with_introspection:-Dgobject_introspection=false} \
 	%{?with_doc:-Dgtk_doc=true} \
 	-Dpackaging_backend=dummy%{?with_alpm:,alpm}%{?with_apt:,aptcc}%{?with_dnf:,dnf}%{?with_entropy:,entropy}%{?with_poldek:,poldek}%{?with_portage:,portage}%{?with_slack:,slack}%{?with_zypp:,zypp}%{?with_nix:,nix} \
@@ -415,11 +414,7 @@ install -d $RPM_BUILD_ROOT/var/cache/PackageKit/downloads
 %ninja_install -C build
 
 %{__rm} $RPM_BUILD_ROOT%{_libdir}/packagekit-backend/libpk_backend_test_*.so
-
-%if %{without apt} && %{without entropy} && %{without portage}
-# common dir not created if no users built with PackageKit
-install -d $RPM_BUILD_ROOT%{_datadir}/PackageKit/helpers
-%endif
+%{__rm} -r $RPM_BUILD_ROOT%{_datadir}/PackageKit/helpers/test_spawn
 
 # use pk-gstreamer-install as codec installer
 ln -s pk-gstreamer-install $RPM_BUILD_ROOT%{_libexecdir}/gst-install-plugins-helper
