@@ -498,9 +498,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/PackageKit/packagekit-glib2
 %{_datadir}/gir-1.0/PackageKitGlib-1.0.gir
 
+%if %{with static_libs}
 %files static
 %defattr(644,root,root,755)
 %{_libdir}/libpackagekit-glib2.a
+%endif
 
 %if %{with vala}
 %files -n vala-packagekit
@@ -509,9 +511,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/vala/vapi/packagekit-glib2.vapi
 %endif
 
+%if %{with apidocs}
 %files apidocs
 %defattr(644,root,root,755)
 %{_gtkdocdir}/PackageKit
+%endif
 
 %if %{with alpm}
 %files backend-alpm
