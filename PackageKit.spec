@@ -3,7 +3,7 @@
 #   (details in bash from Fedora Rawhide)
 #
 # Conditional build:
-%bcond_without	doc		# build without docs
+%bcond_without	apidocs		# API documentation
 %bcond_without	introspection	# gobject introspection, time to time broken
 %bcond_without	static_libs	# static library
 %bcond_without	python		# Python binding (used by entropy and portage backends)
@@ -27,12 +27,12 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	1.2.2
+Version:	1.2.3
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	https://www.freedesktop.org/software/PackageKit/releases/%{name}-%{version}.tar.xz
-# Source0-md5:	2bfa2687bcc4e189bb90e2228c11e558
+# Source0-md5:	464bee4f3d04bed27e0afc7abc946d27
 Patch0:		%{name}-poldek.patch
 Patch2:		%{name}-meson.patch
 Patch3:		consolekit-fallback.patch
@@ -57,7 +57,7 @@ BuildRequires:	glib2-devel >= 1:2.54.0
 BuildRequires:	gstreamer-devel >= 1.0.0
 BuildRequires:	gstreamer-plugins-base-devel >= 1.0.0
 BuildRequires:	gtk+3-devel >= 3.0.0
-%{?with_doc:BuildRequires:	gtk-doc >= 1.11}
+%{?with_apidocs:BuildRequires:	gtk-doc >= 1.11}
 BuildRequires:	libarchive-devel
 %{?with_dnf:BuildRequires:	libdnf-devel >= 0.43.1}
 %if %{with apt} || %{with nix}
@@ -398,7 +398,7 @@ Wiązania PackageKit dla Pythona.
 %meson build \
 	-Dbash_command_not_found=false \
 	%{!?with_introspection:-Dgobject_introspection=false} \
-	%{?with_doc:-Dgtk_doc=true} \
+	%{?with_apidocs:-Dgtk_doc=true} \
 	-Dpackaging_backend=dummy%{?with_alpm:,alpm}%{?with_apt:,aptcc}%{?with_dnf:,dnf}%{?with_entropy:,entropy}%{?with_poldek:,poldek}%{?with_portage:,portage}%{?with_slack:,slack}%{?with_zypp:,zypp}%{?with_nix:,nix} \
 	%{!?with_python:-Dpython_backend=false} \
 	-Dpythonpackagedir=%{py_sitescriptdir} \
