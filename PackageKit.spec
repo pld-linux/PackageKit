@@ -1,6 +1,8 @@
 # TODO:
 # - BASH command-not-found functionality disabled for now as it needs patched bash
 #   (details in bash from Fedora Rawhide)
+# - setup dnf vendor properly? (see meson command)
+# - daemon user (see meson command)
 #
 # Conditional build:
 %bcond_without	apidocs		# API documentation
@@ -11,13 +13,13 @@
 # backends
 %bcond_with	alpm		# ALPM (Arch Linux package manager) backend
 %bcond_with	apt		# APT (Debian/Ubuntu) backend using C++ API
-%bcond_with	dnf		# DNF (Fedora/RHEL/Mageia/OpenMandriva/OpenSUSE/Rosa) backend
+%bcond_without	dnf		# DNF (Fedora/RHEL/Mageia/OpenMandriva/OpenSUSE/Rosa) backend
 %bcond_with	entropy		# Entropy (Sabayon) backend (Python)
-%bcond_with	nix		# Nix (NixOS) backend [broken as of 1.2.0]
+%bcond_with	nix		# Nix (NixOS) backend [broken as of 1.2.0-1.2.5]
 %bcond_without	poldek		# Poldek (PLD) backend
 %bcond_with	portage		# portage (Gentoo) backend (Python)
 %bcond_with	slack		# Slack (Slackware) backend
-%bcond_with	zypp		# ZYPP (openSUSE/SLE) backend [broken as of 1.2.0]
+%bcond_with	zypp		# ZYPP (openSUSE/SLE) backend
 
 %if %{without python}
 %undefine	with_entropy
@@ -27,20 +29,20 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	1.2.4
+Version:	1.2.5
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	https://www.freedesktop.org/software/PackageKit/releases/%{name}-%{version}.tar.xz
-# Source0-md5:	faeb2ba3340cb3c86776ba8bba5f0361
+# Source0-md5:	2a839400c1911a98682a1c9a57eb45e3
 Patch0:		%{name}-poldek.patch
 Patch2:		%{name}-meson.patch
 Patch3:		consolekit-fallback.patch
 URL:		https://www.freedesktop.org/software/PackageKit/
 %{?with_apt:BuildRequires:	AppStream-devel >= 0.12}
 BuildRequires:	NetworkManager-devel >= 0.6.5
-# pkgconfig(libalpm) >= 12.0.0
-%{?with_alpm:BuildRequires:	alpm-devel >= 5.2}
+# pkgconfig(libalpm) >= 13.0.0
+%{?with_alpm:BuildRequires:	alpm-devel >= 6.0}
 %{?with_dnf:BuildRequires:	appstream-glib-devel}
 %{?with_apt:BuildRequires:	apt-devel >= 1.9.2}
 BuildRequires:	bash-completion-devel >= 2.0
@@ -52,7 +54,7 @@ BuildRequires:	docbook-dtd412-xml
 BuildRequires:	docbook-dtd42-xml
 BuildRequires:	fontconfig-devel
 BuildRequires:	gettext-tools
-BuildRequires:	glib2-devel >= 1:2.54.0
+BuildRequires:	glib2-devel >= 1:2.62
 %{?with_introspection:BuildRequires:	gobject-introspection-devel >= 0.9.9}
 BuildRequires:	gstreamer-devel >= 1.0.0
 BuildRequires:	gstreamer-plugins-base-devel >= 1.0.0
@@ -69,7 +71,7 @@ BuildRequires:	libxslt-progs
 BuildRequires:	meson >= 0.50
 BuildRequires:	ninja >= 1.5
 # nix-expr nix-main nix-store
-%{?with_nix:BuildRequires:	nix-devel >= 1.12}
+%{?with_nix:BuildRequires:	nix-devel >= 2.6}
 BuildRequires:	pango-devel
 BuildRequires:	pkgconfig
 # just to detect which reboot modes to use (library not linked)
@@ -85,6 +87,7 @@ BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.736
 BuildRequires:	sed >= 4.0
 BuildRequires:	sqlite3-devel >= 3
+# or elogind >= 229.4
 BuildRequires:	systemd-devel >= 1:213
 BuildRequires:	tar >= 1:1.22
 BuildRequires:	udev-glib-devel
@@ -119,7 +122,7 @@ zgodnego z wieloma dystrybucjami i architekturami.
 Summary:	packagekit-glib library
 Summary(pl.UTF-8):	Biblioteka packagekit-glib
 Group:		Libraries
-Requires:	glib2 >= 1:2.54.0
+Requires:	glib2 >= 1:2.62
 Obsoletes:	browser-plugin-packagekit < 1.1.0
 
 %description libs
@@ -134,7 +137,7 @@ Summary(pl.UTF-8):	Pliki nagłówkowe biblioteki packagekit-glib
 Group:		Development/Libraries
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	dbus-devel >= 1.2.0
-Requires:	glib2-devel >= 1:2.54.0
+Requires:	glib2-devel >= 1:2.62
 Requires:	sqlite3-devel
 
 %description devel
@@ -254,7 +257,7 @@ Summary:	PackageKit Nix backend
 Summary(pl.UTF-8):	Backend PackageKit oparty na zarządcy pakietów Nix
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
-Requires:	nix >= 1.12
+Requires:	nix >= 2.6
 Provides:	%{name}-backend = %{version}-%{release}
 
 %description backend-nix
@@ -394,7 +397,6 @@ Wiązania PackageKit dla Pythona.
 %endif
 
 %build
-%{?with_zypp:CPPFLAGS="%{rpmcppflags} -D_RPM_5 -I/usr/include/rpm"}
 %meson build \
 	-Dbash_command_not_found=false \
 	%{!?with_introspection:-Dgobject_introspection=false} \
@@ -525,6 +527,10 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/alpm.d/groups.list
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/alpm.d/pacman.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/alpm.d/repos.list
+# FIXME: dirs should be owned by alpm?
+%dir %{_datadir}/libalpm
+%dir %{_datadir}/libalpm/hooks
+%{_datadir}/libalpm/hooks/90-packagekit-refresh.hook
 %endif
 
 %if %{with apt}
