@@ -29,12 +29,12 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	1.2.5
+Version:	1.2.6
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	https://www.freedesktop.org/software/PackageKit/releases/%{name}-%{version}.tar.xz
-# Source0-md5:	2a839400c1911a98682a1c9a57eb45e3
+# Source0-md5:	71f855b4ac809b642ec911ce12dd8010
 Patch0:		%{name}-poldek.patch
 Patch2:		%{name}-meson.patch
 Patch3:		consolekit-fallback.patch
@@ -67,11 +67,11 @@ BuildRequires:	libstdc++-devel >= 6:4.7
 %endif
 %{?with_slack:BuildRequires:	libstdc++-devel >= 6:5}
 BuildRequires:	libxslt-progs
-%{?with_zypp:BuildRequires:	libzypp-devel >= 15}
+%{?with_zypp:BuildRequires:	libzypp-devel >= 17.31.0}
 BuildRequires:	meson >= 0.50
 BuildRequires:	ninja >= 1.5
 # nix-expr nix-main nix-store
-%{?with_nix:BuildRequires:	nix-devel >= 2.6}
+%{?with_nix:BuildRequires:	nix-devel >= 2.9}
 BuildRequires:	pango-devel
 BuildRequires:	pkgconfig
 # just to detect which reboot modes to use (library not linked)
@@ -257,7 +257,7 @@ Summary:	PackageKit Nix backend
 Summary(pl.UTF-8):	Backend PackageKit oparty na zarządcy pakietów Nix
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
-Requires:	nix >= 2.6
+Requires:	nix >= 2.9
 Provides:	%{name}-backend = %{version}-%{release}
 
 %description backend-nix
@@ -318,7 +318,7 @@ Summary:	PackageKit Zypp backend
 Summary(pl.UTF-8):	Backend PackageKit Zypp
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
-Requires:	libzypp >= 15
+Requires:	libzypp >= 17.31.0
 Provides:	%{name}-backend = %{version}-%{release}
 
 %description backend-zypp
