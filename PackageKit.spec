@@ -29,12 +29,12 @@
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	1.2.6
+Version:	1.2.7
 Release:	1
 License:	GPL v2+
 Group:		Applications/System
 Source0:	https://www.freedesktop.org/software/PackageKit/releases/%{name}-%{version}.tar.xz
-# Source0-md5:	71f855b4ac809b642ec911ce12dd8010
+# Source0-md5:	3bca1b66bff0267515ff0761df2701cf
 Patch0:		%{name}-poldek.patch
 Patch2:		%{name}-meson.patch
 Patch3:		consolekit-fallback.patch
@@ -45,7 +45,7 @@ BuildRequires:	NetworkManager-devel >= 0.6.5
 %{?with_alpm:BuildRequires:	alpm-devel >= 6.0}
 %{?with_dnf:BuildRequires:	appstream-glib-devel}
 %{?with_apt:BuildRequires:	apt-devel >= 1.9.2}
-BuildRequires:	bash-completion-devel >= 2.0
+BuildRequires:	bash-completion-devel >= 1:2.0
 BuildRequires:	connman-devel
 %{?with_slack:BuildRequires:	curl-devel}
 BuildRequires:	dbus-devel >= 1.2.0
@@ -78,8 +78,7 @@ BuildRequires:	pkgconfig
 #BuildRequires:	plymouth-devel >= 0.9.5
 %{?with_poldek:BuildRequires:	poldek-devel >= 0.30-1.rc6.4}
 BuildRequires:	polkit-devel >= 0.114
-# or 1:3.2
-%{?with_python:BuildRequires:	python-devel >= 1:2.7}
+%{?with_python:BuildRequires:	python3-devel >= 1:3.2}
 BuildRequires:	readline-devel
 BuildRequires:	rpm-build >= 4.6
 %{?with_dnf:BuildRequires:	rpm-devel >= 1:4.6}
@@ -240,8 +239,8 @@ Summary:	PackageKit Entropy backend
 Summary(pl.UTF-8):	Backend PackageKit Entropy
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
-Requires:	python-packagekit = %{version}-%{release}
-#Requires:	python-entropy
+Requires:	python3-packagekit = %{version}-%{release}
+#Requires:	python3-entropy
 Provides:	%{name}-backend = %{version}-%{release}
 
 %description backend-entropy
@@ -288,8 +287,8 @@ Summary:	PackageKit Portage backend
 Summary(pl.UTF-8):	Backend PackageKit Portage
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
-Requires:	python-packagekit = %{version}-%{release}
-#Requires:	python-portage
+Requires:	python3-packagekit = %{version}-%{release}
+#Requires:	python3-portage
 Provides:	%{name}-backend = %{version}-%{release}
 
 %description backend-portage
@@ -363,7 +362,7 @@ Summary:	Bash completion for PackageKit console commands
 Summary(pl.UTF-8):	Bashowe uzupełnianie parametrów dla poleceń konsolowych PackageKit
 Group:		Applications/Shells
 Requires:	%{name} = %{version}-%{release}
-Requires:	bash-completion >= 2
+Requires:	bash-completion >= 1:2.0
 BuildArch:	noarch
 
 %description -n bash-completion-packagekit
@@ -373,17 +372,16 @@ This package provides bash-completion for PackageKit console commands.
 Pakiet ten dostarcza bashowe uzupełnianie parametrów dla poleceń
 konsolowych PackageKit.
 
-%package -n python-packagekit
+%package -n python3-packagekit
 Summary:	PackageKit Python bindings
 Summary(pl.UTF-8):	Wiązania PackageKit dla Pythona
 Group:		Development/Languages/Python
-Requires:	python-dbus
-Requires:	python-pygobject
+Obsoletes:	python-packagekit < 1.2.7
 
-%description -n python-packagekit
+%description -n python3-packagekit
 PackageKit Python bindings.
 
-%description -n python-packagekit -l pl.UTF-8
+%description -n python3-packagekit -l pl.UTF-8
 Wiązania PackageKit dla Pythona.
 
 %prep
@@ -398,12 +396,12 @@ Wiązania PackageKit dla Pythona.
 
 %build
 %meson build \
+	--python.bytecompile=2 \
 	-Dbash_command_not_found=false \
 	%{!?with_introspection:-Dgobject_introspection=false} \
 	%{?with_apidocs:-Dgtk_doc=true} \
 	-Dpackaging_backend=dummy%{?with_alpm:,alpm}%{?with_apt:,aptcc}%{?with_dnf:,dnf}%{?with_entropy:,entropy}%{?with_poldek:,poldek}%{?with_portage:,portage}%{?with_slack:,slack}%{?with_zypp:,zypp}%{?with_nix:,nix} \
 	%{!?with_python:-Dpython_backend=false} \
-	-Dpythonpackagedir=%{py_sitescriptdir} \
 	-Dsystemdsystemunitdir=%{systemdunitdir}
 
 # TODO:
@@ -427,13 +425,6 @@ ln -s pk-gstreamer-install $RPM_BUILD_ROOT%{_libexecdir}/gst-install-plugins-hel
 install -d $RPM_BUILD_ROOT%{systemdunitdir}/system-update.target.wants
 ln -sf ../packagekit-offline-update.service \
         $RPM_BUILD_ROOT%{systemdunitdir}/system-update.target.wants/packagekit-offline-update.service
-
-%if %{with python}
-%py_comp $RPM_BUILD_ROOT%{py_sitescriptdir}
-%py_ocomp $RPM_BUILD_ROOT%{py_sitescriptdir}
-
-%py_postclean
-%endif
 
 %find_lang %{name}
 
@@ -464,13 +455,13 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/PackageKit.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/Vendor.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/packagekit-background
-/etc/dbus-1/system.d/org.freedesktop.PackageKit.conf
 %dir %{_datadir}/PackageKit
 %dir %{_datadir}/PackageKit/helpers
 %attr(755,root,root) %{_datadir}/PackageKit/pk-upgrade-distro.sh
 %{_datadir}/polkit-1/actions/org.freedesktop.packagekit.policy
 %{_datadir}/polkit-1/rules.d/org.freedesktop.packagekit.rules
 %{_datadir}/dbus-1/system-services/org.freedesktop.PackageKit.service
+%{_datadir}/dbus-1/system.d/org.freedesktop.PackageKit.conf
 %{_mandir}/man1/pkcon.1*
 %{_mandir}/man1/pkmon.1*
 %{systemdunitdir}/packagekit.service
@@ -548,6 +539,9 @@ rm -rf $RPM_BUILD_ROOT
 %files backend-dnf
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_dnf.so
+%attr(755,root,root) %{_libexecdir}/packagekit-dnf-refresh-repo
+%{py3_sitescriptdir}/dnf-plugins/notify_packagekit.py
+%{py3_sitescriptdir}/dnf-plugins/__pycache__/notify_packagekit.cpython-*.py[co]
 %endif
 
 %if %{with entropy}
@@ -610,8 +604,7 @@ rm -rf $RPM_BUILD_ROOT
 %{bash_compdir}/pkcon
 
 %if %{with python}
-%files -n python-packagekit
+%files -n python3-packagekit
 %defattr(644,root,root,755)
-%dir %{py_sitescriptdir}/packagekit
-%{py_sitescriptdir}/packagekit/*.py[co]
+%{py3_sitescriptdir}/packagekit
 %endif
