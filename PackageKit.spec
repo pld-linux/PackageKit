@@ -52,6 +52,7 @@ BuildRequires:	dbus-devel >= 1.2.0
 BuildRequires:	dbus-glib-devel >= 0.76
 BuildRequires:	docbook-dtd412-xml
 BuildRequires:	docbook-dtd42-xml
+BuildRequires:	docbook-style-xsl-nons
 BuildRequires:	fontconfig-devel
 BuildRequires:	gettext-tools
 BuildRequires:	glib2-devel >= 1:2.62
@@ -424,7 +425,7 @@ ln -s pk-gstreamer-install $RPM_BUILD_ROOT%{_libexecdir}/gst-install-plugins-hel
 
 install -d $RPM_BUILD_ROOT%{systemdunitdir}/system-update.target.wants
 ln -sf ../packagekit-offline-update.service \
-        $RPM_BUILD_ROOT%{systemdunitdir}/system-update.target.wants/packagekit-offline-update.service
+	$RPM_BUILD_ROOT%{systemdunitdir}/system-update.target.wants/packagekit-offline-update.service
 
 %find_lang %{name}
 
