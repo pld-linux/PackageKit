@@ -16,6 +16,7 @@
 %bcond_without	dnf		# DNF (Fedora/RHEL/Mageia/OpenMandriva/OpenSUSE/Rosa) backend
 %bcond_with	entropy		# Entropy (Sabayon) backend (Python)
 %bcond_with	nix		# Nix (NixOS) backend [broken as of 1.2.0-1.2.5]
+%bcond_with	pisi		# PiSi (Pardus) backend (Python)
 %bcond_without	poldek		# Poldek (PLD) backend
 %bcond_with	portage		# portage (Gentoo) backend (Python)
 %bcond_with	slack		# Slack (Slackware) backend
@@ -23,6 +24,7 @@
 
 %if %{without python}
 %undefine	with_entropy
+%undefine	with_pisi
 %undefine	with_portage
 %endif
 
@@ -99,7 +101,6 @@ Requires:	%{name}-libs = %{version}-%{release}
 Requires:	crondaemon
 Requires:	polkit >= 0.114
 Suggests:	ConsoleKit-x11
-Obsoletes:	PackageKit-backend-pisi < 1.2
 Obsoletes:	PackageKit-backend-ports < 1.2
 Obsoletes:	PackageKit-backend-smart < 1.0
 Obsoletes:	PackageKit-backend-urpmi < 1.2
@@ -267,6 +268,24 @@ NixOS).
 %description backend-nix -l pl.UTF-8
 Backend PackageKit dodający obsługę pakietów Nix (używanych w NixOS).
 
+%package backend-pisi
+Summary:	PackageKit PiSi backend
+Summary(pl.UTF-8):	Backend PackageKit PiSi
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	python3-packagekit = %{version}-%{release}
+#Requires:	python3-piksemel
+#Requires:	python3-pisi
+Provides:	%{name}-backend = %{version}-%{release}
+
+%description backend-pisi
+A backend for PackageKit to enable PiSi packages support. PiSi
+packages are originated in Pardus distribution.
+
+%description backend-pisi -l pl.UTF-8
+Backend PackageKit dodający obsługę pakietów PiSi. Pakiety PiSi
+wywodzą się z dystrybucji Pardus.
+
 %package backend-poldek
 Summary:	PackageKit Poldek backend
 Summary(pl.UTF-8):	Backend PackageKit oparty na Poldku
@@ -391,6 +410,8 @@ Wiązania PackageKit dla Pythona.
 %patch2 -p1
 %patch3 -p1
 
+%{__sed} -i -e '1s,/usr/bin/python$,%{__python3},' backends/pisi/pisiBackend.py
+
 %if %{with static_libs}
 %{__sed} -i -e '/^packagekit_glib2_library =/ s/shared_library/library/' lib/packagekit-glib2/meson.build
 %endif
@@ -401,7 +422,7 @@ Wiązania PackageKit dla Pythona.
 	-Dbash_command_not_found=false \
 	%{!?with_introspection:-Dgobject_introspection=false} \
 	%{?with_apidocs:-Dgtk_doc=true} \
-	-Dpackaging_backend=dummy%{?with_alpm:,alpm}%{?with_apt:,aptcc}%{?with_dnf:,dnf}%{?with_entropy:,entropy}%{?with_poldek:,poldek}%{?with_portage:,portage}%{?with_slack:,slack}%{?with_zypp:,zypp}%{?with_nix:,nix} \
+	-Dpackaging_backend=dummy%{?with_alpm:,alpm}%{?with_apt:,aptcc}%{?with_dnf:,dnf}%{?with_entropy:,entropy}%{?with_pisi:,pisi}%{?with_poldek:,poldek}%{?with_portage:,portage}%{?with_slack:,slack}%{?with_zypp:,zypp}%{?with_nix:,nix} \
 	%{!?with_python:-Dpython_backend=false} \
 	-Dsystemdsystemunitdir=%{systemdunitdir}
 
@@ -463,6 +484,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/polkit-1/rules.d/org.freedesktop.packagekit.rules
 %{_datadir}/dbus-1/system-services/org.freedesktop.PackageKit.service
 %{_datadir}/dbus-1/system.d/org.freedesktop.PackageKit.conf
+%{_datadir}/metainfo/org.freedesktop.packagekit.metainfo.xml
 %{_mandir}/man1/pkcon.1*
 %{_mandir}/man1/pkmon.1*
 %{systemdunitdir}/packagekit.service
@@ -557,6 +579,14 @@ rm -rf $RPM_BUILD_ROOT
 %files backend-nix
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_nix.so
+%endif
+
+%if %{with pisi}
+%files backend-pisi
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_pisi.so
+%dir %{_datadir}/PackageKit/helpers/pisi
+%attr(755,root,root) %{_datadir}/PackageKit/helpers/pisi/pisiBackend.py
 %endif
 
 %if %{with poldek}
