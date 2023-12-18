@@ -41,11 +41,11 @@ Patch0:		%{name}-poldek.patch
 Patch2:		%{name}-meson.patch
 Patch3:		consolekit-fallback.patch
 URL:		https://www.freedesktop.org/software/PackageKit/
-%{?with_apt:BuildRequires:	AppStream-devel >= 0.12}
+%{?with_dnf:BuildRequires:	AppStream-devel >= 0.14.0}
+%{?with_apt:BuildRequires:	AppStream-devel >= 0.16.0}
 BuildRequires:	NetworkManager-devel >= 0.6.5
 # pkgconfig(libalpm) >= 13.0.0
 %{?with_alpm:BuildRequires:	alpm-devel >= 6.0}
-%{?with_dnf:BuildRequires:	appstream-glib-devel}
 %{?with_apt:BuildRequires:	apt-devel >= 1.9.2}
 BuildRequires:	bash-completion-devel >= 1:2.0
 BuildRequires:	connman-devel
