@@ -86,7 +86,7 @@ BuildRequires:	readline-devel
 BuildRequires:	rpm-build >= 4.6
 %{?with_dnf:BuildRequires:	rpm-devel >= 1:4.6}
 BuildRequires:	rpm-pythonprov
-BuildRequires:	rpmbuild(macros) >= 1.736
+BuildRequires:	rpmbuild(macros) >= 2.042
 BuildRequires:	sed >= 4.0
 BuildRequires:	sqlite3-devel >= 3
 # or elogind >= 229.4
