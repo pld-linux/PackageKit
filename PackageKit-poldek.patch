@@ -1,16 +1,14 @@
---- PackageKit-1.0.4/backends/poldek/pk-backend-poldek.c.orig	2014-09-09 18:58:14.000000000 +0200
-+++ PackageKit-1.0.4/backends/poldek/pk-backend-poldek.c	2015-01-31 16:36:47.306797886 +0100
-@@ -2179,7 +2179,7 @@
- 		pberror->vfffmsg = g_strdup (message);
- 
- 		// 'vfff: unable to connect to ftp.pld-linux.org:21: Connection refused'
--		pk_backend_job_message (job, PK_MESSAGE_ENUM_CONNECTION_REFUSED, "%s", message);
-+		//pk_backend_job_message (job, PK_MESSAGE_ENUM_CONNECTION_REFUSED, "%s", message);
- 	} else {
- 		if (pri & LOGERR) {
- 			g_string_append_printf (pberror->tslog, "error: %s", message);
 --- PackageKit-1.1.13/backends/poldek/pk-backend-poldek.c~	2020-03-03 11:43:32.000000000 +0100
 +++ PackageKit-1.1.13/backends/poldek/pk-backend-poldek.c	2020-03-03 11:46:06.324485256 +0100
+@@ -836,7 +836,7 @@
+ 
+ 		/* get only one package */
+ 		if ((ldbrec = pkgdb_it_get (&it)) != NULL) {
+-			gchar *name = NULL, *version = NULL, *release = NULL, *arch = NULL;
++			const gchar *name = NULL, *version = NULL, *release = NULL, *arch = NULL;
+ 			gint epoch;
+ 
+ 			pm_dbrec_nevr (ldbrec, &name, &epoch, &version, &release, &arch, NULL);
 @@ -979,7 +979,7 @@ poldek_get_nvra_from_package_id (const g
  static tn_array*
  poldek_get_installed_packages (void)
@@ -20,6 +18,15 @@
  }
  
  static tn_array*
+@@ -2179,7 +2179,7 @@
+ 		pberror->vfffmsg = g_strdup (message);
+ 
+ 		// 'vfff: unable to connect to ftp.pld-linux.org:21: Connection refused'
+-		pk_backend_job_message (job, PK_MESSAGE_ENUM_CONNECTION_REFUSED, "%s", message);
++		//pk_backend_job_message (job, PK_MESSAGE_ENUM_CONNECTION_REFUSED, "%s", message);
+ 	} else {
+ 		if (pri & LOGERR) {
+ 			g_string_append_printf (pberror->tslog, "error: %s", message);
 @@ -2723,7 +2723,7 @@ get_obsoletedby_pkg (struct pkg *pkg)
  	obsoletes = g_ptr_array_new ();
  
