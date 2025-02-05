@@ -406,9 +406,9 @@ Wiązania PackageKit dla Pythona.
 
 %prep
 %setup -q
-%patch0 -p1
-%patch2 -p1
-%patch3 -p1
+%patch -P 0 -p1
+%patch -P 2 -p1
+%patch -P 3 -p1
 
 %{__sed} -i -e '1s,/usr/bin/python$,%{__python3},' backends/pisi/pisiBackend.py
 
@@ -417,7 +417,7 @@ Wiązania PackageKit dla Pythona.
 %endif
 
 %build
-%meson build \
+%meson \
 	--python.bytecompile=2 \
 	-Dbash_command_not_found=false \
 	%{!?with_introspection:-Dgobject_introspection=false} \
@@ -430,13 +430,13 @@ Wiązania PackageKit dla Pythona.
 # -Ddnf_vendor=
 # -Dpackagekit_user=
 
-%ninja_build -C build
+%meson_build
 
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/var/cache/PackageKit/downloads
 
-%ninja_install -C build
+%meson_install
 
 %{__rm} $RPM_BUILD_ROOT%{_libdir}/packagekit-backend/libpk_backend_test_*.so
 %{__rm} -r $RPM_BUILD_ROOT%{_datadir}/PackageKit/helpers/test_spawn
