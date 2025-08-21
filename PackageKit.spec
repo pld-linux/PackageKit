@@ -32,7 +32,7 @@ Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
 Version:	1.2.8
-Release:	7
+Release:	8
 License:	GPL v2+
 Group:		Applications/System
 Source0:	https://www.freedesktop.org/software/PackageKit/releases/%{name}-%{version}.tar.xz
@@ -98,7 +98,7 @@ BuildRequires:	xz
 Requires(post,postun):	shared-mime-info
 Requires:	%{name}-backend
 Requires:	%{name}-libs = %{version}-%{release}
-Requires:	crondaemon
+Requires:	cronjobs
 Requires:	polkit >= 0.114
 Suggests:	ConsoleKit-x11
 Obsoletes:	PackageKit-backend-ports < 1.2
