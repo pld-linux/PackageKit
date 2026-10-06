@@ -1,14 +1,14 @@
---- PackageKit-1.1.13/src/pk-dbus.c.orig	2018-12-14 10:05:15.000000000 +0100
-+++ PackageKit-1.1.13/src/pk-dbus.c	2020-03-03 11:41:02.148537933 +0100
-@@ -28,6 +28,7 @@
+--- PackageKit-1.4.0/src/pk-dbus.c.orig	2026-09-09 22:42:50.000000000 +0200
++++ PackageKit-1.4.0/src/pk-dbus.c	2026-09-25 21:31:40.599431638 +0200
+@@ -26,6 +26,7 @@
  #include <gio/gio.h>
  
  #ifdef HAVE_SYSTEMD_SD_LOGIN_H
-+ #include <systemd/sd-daemon.h>
-  #include <systemd/sd-login.h>
++#include <systemd/sd-daemon.h>
+ #include <systemd/sd-login.h>
  #endif
  
-@@ -218,9 +219,7 @@ gchar *
+@@ -235,9 +236,7 @@ gchar *
  pk_dbus_get_session (PkDbus *dbus, const gchar *sender)
  {
  	gchar *session = NULL;
@@ -18,7 +18,7 @@
  	guint pid;
  	g_autoptr(GVariant) value = NULL;
  
-@@ -249,10 +248,12 @@ pk_dbus_get_session (PkDbus *dbus, const
+@@ -260,10 +259,12 @@ pk_dbus_get_session (PkDbus *dbus, const
  
  	/* get session from systemd or ConsoleKit */
  #ifdef HAVE_SYSTEMD_SD_LOGIN_H
@@ -29,10 +29,10 @@
 -#else
 +	} else {
 +#endif
- 	/* get session from ConsoleKit */
- 	value = g_dbus_proxy_call_sync (dbus->priv->proxy_session,
- 					"GetSessionForUnixProcess",
-@@ -268,6 +269,8 @@ pk_dbus_get_session (PkDbus *dbus, const
+ 	/* no ConsoleKit? */
+ 	if (dbus->proxy_session == NULL) {
+ 		g_warning ("no ConsoleKit, so cannot get session");
+@@ -282,6 +283,8 @@ pk_dbus_get_session (PkDbus *dbus, const
  		goto out;
  	}
  	g_variant_get (value, "(o)", &session);

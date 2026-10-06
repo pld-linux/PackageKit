@@ -1,5 +1,5 @@
---- PackageKit-1.1.13/backends/poldek/pk-backend-poldek.c~	2020-03-03 11:43:32.000000000 +0100
-+++ PackageKit-1.1.13/backends/poldek/pk-backend-poldek.c	2020-03-03 11:46:06.324485256 +0100
+--- PackageKit-1.4.0/backends/poldek/pk-backend-poldek.c~	2020-03-03 11:43:32.000000000 +0100
++++ PackageKit-1.4.0/backends/poldek/pk-backend-poldek.c	2020-03-03 11:46:06.324485256 +0100
 @@ -836,7 +836,7 @@
  
  		/* get only one package */
@@ -10,14 +10,14 @@
  
  			pm_dbrec_nevr (ldbrec, &name, &epoch, &version, &release, &arch, NULL);
 @@ -979,7 +979,7 @@ poldek_get_nvra_from_package_id (const g
- static tn_array*
+ static tn_array *
  poldek_get_installed_packages (void)
  {
 -	return poclidek_get_dent_packages (priv->cctx, POCLIDEK_INSTALLEDDIR);
 +	return poclidek_get_dent_packages (priv->cctx, POCLIDEK_INSTALLEDDIR, 0);
  }
  
- static tn_array*
+ static tn_array *
 @@ -2179,7 +2179,7 @@
  		pberror->vfffmsg = g_strdup (message);
  

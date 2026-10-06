@@ -1,0 +1,38 @@
+--- PackageKit-1.4.0/backends/zypp/pk-backend-zypp.cpp.orig	2026-09-09 22:42:50.000000000 +0200
++++ PackageKit-1.4.0/backends/zypp/pk-backend-zypp.cpp	2026-10-06 19:06:06.751321424 +0200
+@@ -278,7 +278,7 @@ struct InstallResolvableReportReceiver :
+ 			_dl_status = PK_INFO_ENUM_INSTALLING;
+ 		}
+ 		_package_id = zypp_build_package_id_from_resolvable (resolvable->satSolvable ());
+-		MIL << resolvable << " " << _package_id << std::endl;
++		zypp::operator<<(MIL, resolvable) << " " << _package_id << std::endl;
+ 		gchar* summary = g_strdup(zypp::asKind<zypp::ResObject>(resolvable)->summary().c_str ());
+ 		if (_package_id != NULL) {
+ 			pk_backend_job_set_status (_job, PK_STATUS_ENUM_INSTALL);
+@@ -302,7 +302,7 @@ struct InstallResolvableReportReceiver :
+ 	}
+ 
+ 	virtual void finish (zypp::Resolvable::constPtr resolvable, Error error, const std::string &reason, RpmLevel level) {
+-		MIL << reason << " " << _package_id << " " << resolvable << std::endl;
++		zypp::operator<<(MIL << reason << " " << _package_id << " ", resolvable) << std::endl;
+ 		pk_backend_job_set_percentage(_job, (double)++_dl_progress / _dl_count * 100);
+ 		if (_package_id != NULL) {
+ 			//pk_backend_job_package (_backend, PK_INFO_ENUM_INSTALLED, _package_id, "TODO: Put the package summary here if possible");
+@@ -390,7 +390,7 @@ struct DownloadProgressReportReceiver :
+ {
+ 	virtual void start (zypp::Resolvable::constPtr resolvable, const zypp::Url &file)
+ 	{
+-		MIL << resolvable << " " << file << std::endl;
++		zypp::operator<<(MIL, resolvable) << " " << file << std::endl;
+ 		clear_package_id ();
+ 		/* This is the first package we see coming as INSTALLING - resetting counter and modus */
+ 		if (_dl_status != PK_INFO_ENUM_DOWNLOADING) {
+@@ -420,7 +420,7 @@ struct DownloadProgressReportReceiver :
+ 
+ 	virtual void finish (zypp::Resolvable::constPtr resolvable, Error error, const std::string &konreason)
+ 	{
+-		MIL << resolvable << " " << error << " " << _package_id << std::endl;
++		zypp::operator<<(MIL, resolvable) << " " << error << " " << _package_id << std::endl;
+ 		update_sub_percentage (100, PK_STATUS_ENUM_DOWNLOAD);
+ 		pk_backend_job_set_percentage(_job, (double)++_dl_progress / _dl_count * 100);
+ 		clear_package_id ();

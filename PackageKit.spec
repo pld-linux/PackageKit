@@ -1,8 +1,8 @@
 # TODO:
 # - BASH command-not-found functionality disabled for now as it needs patched bash
 #   (details in bash from Fedora Rawhide)
-# - setup dnf vendor properly? (see meson command)
-# - daemon user (see meson command)
+# - setup dnf vendor properly? (see meson command, -Ddnf_vendor=)
+# - daemon user (see meson command, -Dpackagekit_user=)
 #
 # Conditional build:
 %bcond_without	apidocs		# API documentation
@@ -13,65 +13,65 @@
 # backends
 %bcond_with	alpm		# ALPM (Arch Linux package manager) backend
 %bcond_with	apt		# APT (Debian/Ubuntu) backend using C++ API
-%bcond_without	dnf		# DNF (Fedora/RHEL/Mageia/OpenMandriva/OpenSUSE/Rosa) backend
+%bcond_without	dnf		# DNF5 (Fedora/RHEL/Mageia/OpenMandriva/OpenSUSE/Rosa) backend
 %bcond_with	entropy		# Entropy (Sabayon) backend (Python)
-%bcond_with	nix		# Nix (NixOS) backend [broken as of 1.2.0-1.2.5]
-%bcond_with	pisi		# PiSi (Pardus) backend (Python)
+%bcond_with	eopkg		# eopkg (Solus) backend
+%bcond_with	nix		# Nix (NixOS) backend [broken as of 1.2.0-1.4.0]
 %bcond_without	poldek		# Poldek (PLD) backend
 %bcond_with	portage		# portage (Gentoo) backend (Python)
-%bcond_with	slack		# Slack (Slackware) backend
 %bcond_with	zypp		# ZYPP (openSUSE/SLE) backend
 
 %if %{without python}
 %undefine	with_entropy
-%undefine	with_pisi
+%undefine	with_eopkg
 %undefine	with_portage
 %endif
 
 Summary:	System daemon that is a D-Bus abstraction layer for package management
 Summary(pl.UTF-8):	Demon systemowy będący warstwą abstrakcji D-Bus do zarządzania pakietami
 Name:		PackageKit
-Version:	1.2.8
-Release:	8
-License:	GPL v2+
+Version:	1.4.0
+Release:	1
+License:	GPL v2+ (app and backends), LGPL v2.1+ (library)
 Group:		Applications/System
 Source0:	https://www.freedesktop.org/software/PackageKit/releases/%{name}-%{version}.tar.xz
-# Source0-md5:	78cb918f4128a57bfc8a454b60f5a3c1
+# Source0-md5:	8c4f2311122b755f40b10d54cb94a2fc
 Patch0:		%{name}-poldek.patch
-Patch2:		%{name}-meson.patch
+Patch1:		%{name}-zypp.patch
 Patch3:		consolekit-fallback.patch
 URL:		https://www.freedesktop.org/software/PackageKit/
-%{?with_dnf:BuildRequires:	AppStream-devel >= 0.14.0}
 %{?with_apt:BuildRequires:	AppStream-devel >= 0.16.0}
 BuildRequires:	NetworkManager-devel >= 0.6.5
-# pkgconfig(libalpm) >= 13.0.0
-%{?with_alpm:BuildRequires:	alpm-devel >= 6.0}
+# pkgconfig(libalpm) >= 15.0.0
+%{?with_alpm:BuildRequires:	alpm-devel >= 7.0.0}
 %{?with_apt:BuildRequires:	apt-devel >= 1.9.2}
 BuildRequires:	bash-completion-devel >= 1:2.0
 BuildRequires:	connman-devel
-%{?with_slack:BuildRequires:	curl-devel}
 BuildRequires:	dbus-devel >= 1.2.0
 BuildRequires:	dbus-glib-devel >= 0.76
 BuildRequires:	docbook-dtd412-xml
 BuildRequires:	docbook-dtd42-xml
 BuildRequires:	docbook-style-xsl-nons
 BuildRequires:	fontconfig-devel
+BuildRequires:	gcc >= 6:7
 BuildRequires:	gettext-tools
-BuildRequires:	glib2-devel >= 1:2.62
+BuildRequires:	glib2-devel >= 1:2.76
 %{?with_introspection:BuildRequires:	gobject-introspection-devel >= 0.9.9}
 BuildRequires:	gstreamer-devel >= 1.0.0
 BuildRequires:	gstreamer-plugins-base-devel >= 1.0.0
 BuildRequires:	gtk+3-devel >= 3.0.0
 %{?with_apidocs:BuildRequires:	gtk-doc >= 1.11}
+BuildRequires:	jansson-devel >= 2.8
 BuildRequires:	libarchive-devel
-%{?with_dnf:BuildRequires:	libdnf-devel >= 0.43.1}
+%{?with_dnf:BuildRequires:	libdnf5-devel >= 5.2.17.0}
 %if %{with apt} || %{with nix}
 BuildRequires:	libstdc++-devel >= 6:4.7
 %endif
-%{?with_slack:BuildRequires:	libstdc++-devel >= 6:5}
+%{?with_zypp:BuildRequires:	libstdc++-devel >= 6:7}
+%{?with_dnf:BuildRequires:	libstdc++-devel >= 6:8}
 BuildRequires:	libxslt-progs
-%{?with_zypp:BuildRequires:	libzypp-devel >= 17.31.0}
-BuildRequires:	meson >= 0.50
+%{?with_zypp:BuildRequires:	libzypp-devel >= 17.36.4}
+BuildRequires:	meson >= 1.0
 BuildRequires:	ninja >= 1.5
 # nix-expr nix-main nix-store
 %{?with_nix:BuildRequires:	nix-devel >= 2.9}
@@ -84,9 +84,10 @@ BuildRequires:	polkit-devel >= 0.114
 %{?with_python:BuildRequires:	python3-devel >= 1:3.2}
 BuildRequires:	readline-devel
 BuildRequires:	rpm-build >= 4.6
-%{?with_dnf:BuildRequires:	rpm-devel >= 1:4.6}
+%{?with_dnf:BuildRequires:	rpm-devel >= 1:4.20}
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 2.042
+%{?with_dnf:BuildRequires:	sdbus-cpp-devel}
 BuildRequires:	sed >= 4.0
 BuildRequires:	sqlite3-devel >= 3
 # or elogind >= 229.4
@@ -99,9 +100,12 @@ Requires(post,postun):	shared-mime-info
 Requires:	%{name}-backend
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	cronjobs
+Requires:	jansson >= 2.8
 Requires:	polkit >= 0.114
 Suggests:	ConsoleKit-x11
+Obsoletes:	PackageKit-backend-pisi < 1.4
 Obsoletes:	PackageKit-backend-ports < 1.2
+Obsoletes:	PackageKit-backend-slack < 1.3.5
 Obsoletes:	PackageKit-backend-smart < 1.0
 Obsoletes:	PackageKit-backend-urpmi < 1.2
 Obsoletes:	PackageKit-backend-yum < 1.2
@@ -122,8 +126,9 @@ zgodnego z wieloma dystrybucjami i architekturami.
 %package libs
 Summary:	packagekit-glib library
 Summary(pl.UTF-8):	Biblioteka packagekit-glib
+License:	LGPL v2.1+
 Group:		Libraries
-Requires:	glib2 >= 1:2.62
+Requires:	glib2 >= 1:2.76
 Obsoletes:	browser-plugin-packagekit < 1.1.0
 
 %description libs
@@ -135,11 +140,10 @@ Biblioteka packagekit-glib.
 %package devel
 Summary:	Header files for packagekit-glib library
 Summary(pl.UTF-8):	Pliki nagłówkowe biblioteki packagekit-glib
+License:	LGPL v2.1+
 Group:		Development/Libraries
 Requires:	%{name}-libs = %{version}-%{release}
-Requires:	dbus-devel >= 1.2.0
-Requires:	glib2-devel >= 1:2.62
-Requires:	sqlite3-devel
+Requires:	glib2-devel >= 1:2.76
 
 %description devel
 Header files for packagekit-glib library.
@@ -150,6 +154,7 @@ Pliki nagłówkowe biblioteki packagekit-glib.
 %package static
 Summary:	Static packagekit-glib library
 Summary(pl.UTF-8):	Statyczna biblioteka packagekit-glib
+License:	LGPL v2.1+
 Group:		Development/Libraries
 Requires:	%{name}-devel = %{version}-%{release}
 
@@ -162,6 +167,7 @@ Statyczna biblioteka packagekit-glib.
 %package -n vala-packagekit
 Summary:	Vala API for PackageKit library
 Summary(pl.UTF-8):	API języka Vala do biblioteki PackageKitu
+License:	LGPL v2.1+
 Group:		Development/Libraries
 Requires:	%{name}-devel = %{version}-%{release}
 Requires:	vala >= 2:0.16
@@ -176,6 +182,7 @@ API języka Vala do biblioteki PackageKitu.
 %package apidocs
 Summary:	PackageKit library API documentation
 Summary(pl.UTF-8):	Dokumentacja API biblioteki PackageKit
+License:	LGPL v2.1+
 Group:		Documentation
 Requires:	gtk-doc-common
 BuildArch:	noarch
@@ -222,8 +229,8 @@ Summary:	PackageKit dnf backend
 Summary(pl.UTF-8):	Backend PackageKit oparty na bibliotece dnfhif
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
-Requires:	libdnf >= 0.43.1
-Requires:	rpm >= 1:4.6
+Requires:	libdnf5 >= 5.2.17.0
+Requires:	rpm >= 1:4.20
 Provides:	%{name}-backend = %{version}-%{release}
 Obsoletes:	PackageKit-backend-hawkey < 1.0
 Obsoletes:	PackageKit-backend-hif < 1.2
@@ -253,6 +260,23 @@ Entropy package manager.
 Backend PackageKit dodający obsługę pakietów dystrybucji Sabayon przy
 użyciu zarządcy pakietów Entropy.
 
+%package backend-eopkg
+Summary:	PackageKit eopkg backend
+Summary(pl.UTF-8):	Backend PackageKit eopkg
+Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	python3-packagekit = %{version}-%{release}
+Requires:	python3-pisi
+Provides:	%{name}-backend = %{version}-%{release}
+
+%description backend-eopkg
+A backend for PackageKit to enable eopkg packages support. eopkg
+packages are originated in Solus Linux distribution.
+
+%description backend-eopkg -l pl.UTF-8
+Backend PackageKit dodający obsługę pakietów eopkg. Pakiety eopkg
+wywodzą się z dystrybucji Solus Linux.
+
 %package backend-nix
 Summary:	PackageKit Nix backend
 Summary(pl.UTF-8):	Backend PackageKit oparty na zarządcy pakietów Nix
@@ -267,24 +291,6 @@ NixOS).
 
 %description backend-nix -l pl.UTF-8
 Backend PackageKit dodający obsługę pakietów Nix (używanych w NixOS).
-
-%package backend-pisi
-Summary:	PackageKit PiSi backend
-Summary(pl.UTF-8):	Backend PackageKit PiSi
-Group:		Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	python3-packagekit = %{version}-%{release}
-#Requires:	python3-piksemel
-#Requires:	python3-pisi
-Provides:	%{name}-backend = %{version}-%{release}
-
-%description backend-pisi
-A backend for PackageKit to enable PiSi packages support. PiSi
-packages are originated in Pardus distribution.
-
-%description backend-pisi -l pl.UTF-8
-Backend PackageKit dodający obsługę pakietów PiSi. Pakiety PiSi
-wywodzą się z dystrybucji Pardus.
 
 %package backend-poldek
 Summary:	PackageKit Poldek backend
@@ -318,26 +324,12 @@ A backend for PackageKit to enable Gentoo Portage support.
 Backend PackageKit dodający obsługę systemu Portage dystrybucji
 Gentoo.
 
-%package backend-slack
-Summary:	PackageKit Slack backend
-Summary(pl.UTF-8):	Backend PackageKit Slack
-Group:		Libraries
-Requires:	%{name} = %{version}-%{release}
-Provides:	%{name}-backend = %{version}-%{release}
-Obsoletes:	PackageKit-backend-katja < 1.2
-
-%description backend-slack
-Slack backend for PackageKit to enable Slackware repositories support.
-
-%description backend-slack -l pl.UTF-8
-Backend PackageKit Slack dodający obsługę repozytoriów Slackware.
-
 %package backend-zypp
 Summary:	PackageKit Zypp backend
 Summary(pl.UTF-8):	Backend PackageKit Zypp
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
-Requires:	libzypp >= 17.31.0
+Requires:	libzypp >= 17.36.4
 Provides:	%{name}-backend = %{version}-%{release}
 
 %description backend-zypp
@@ -406,14 +398,14 @@ Wiązania PackageKit dla Pythona.
 
 %prep
 %setup -q
-%patch -P 0 -p1
-%patch -P 2 -p1
-%patch -P 3 -p1
+%patch -P0 -p1
+%patch -P1 -p1
+%patch -P3 -p1
 
-%{__sed} -i -e '1s,/usr/bin/python$,%{__python3},' backends/pisi/pisiBackend.py
+%{__sed} -i -e '1s,/usr/bin/python$,%{__python},' backends/eopkg/eopkgBackend.py
 
 %if %{with static_libs}
-%{__sed} -i -e '/^packagekit_glib2_library =/ s/shared_library/library/' lib/packagekit-glib2/meson.build
+%{__sed} -i -e '/^packagekit_glib2_library =/ s/shared_library/library/' lib/meson.build
 %endif
 
 %build
@@ -423,7 +415,8 @@ export CFLAGS="%{rpmcflags} -Wno-enum-conversion"
 	-Dbash_command_not_found=false \
 	%{!?with_introspection:-Dgobject_introspection=false} \
 	%{?with_apidocs:-Dgtk_doc=true} \
-	-Dpackaging_backend=dummy%{?with_alpm:,alpm}%{?with_apt:,aptcc}%{?with_dnf:,dnf}%{?with_entropy:,entropy}%{?with_pisi:,pisi}%{?with_poldek:,poldek}%{?with_portage:,portage}%{?with_slack:,slack}%{?with_zypp:,zypp}%{?with_nix:,nix} \
+	-Dlegacy_tools=true \
+	-Dpackaging_backend=dummy%{?with_alpm:,alpm}%{?with_apt:,aptcc}%{?with_dnf:,dnf5}%{?with_entropy:,entropy}%{?with_eopkg:,eopkg}%{?with_poldek:,poldek}%{?with_portage:,portage}%{?with_zypp:,zypp}%{?with_nix:,nix} \
 	%{!?with_python:-Dpython_backend=false} \
 	-Dsystemdsystemunitdir=%{systemdunitdir}
 
@@ -465,15 +458,16 @@ rm -rf $RPM_BUILD_ROOT
 
 %files -f %{name}.lang
 %defattr(644,root,root,755)
-%doc AUTHORS HACKING MAINTAINERS NEWS README
+%doc AUTHORS NEWS README.md SECURITY.md backends/MAINTAINERS.md
 %attr(755,root,root) %{_bindir}/pkcon
+%attr(755,root,root) %{_bindir}/pkgcli
 %attr(755,root,root) %{_bindir}/pkmon
 %attr(750,root,root) /etc/cron.daily/packagekit-background.cron
 %attr(755,root,root) %{_libexecdir}/packagekit-direct
 %attr(755,root,root) %{_libexecdir}/packagekitd
 %attr(755,root,root) %{_libexecdir}/pk-offline-update
 %dir %{_libdir}/packagekit-backend
-%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_dummy.so
+%{_libdir}/packagekit-backend/libpk_backend_dummy.so
 %dir %{_sysconfdir}/PackageKit
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/PackageKit.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/Vendor.conf
@@ -487,6 +481,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/dbus-1/system.d/org.freedesktop.PackageKit.conf
 %{_datadir}/metainfo/org.freedesktop.packagekit.metainfo.xml
 %{_mandir}/man1/pkcon.1*
+%{_mandir}/man1/pkgcli.1*
 %{_mandir}/man1/pkmon.1*
 %{systemdunitdir}/packagekit.service
 %{systemdunitdir}/packagekit-offline-update.service
@@ -498,8 +493,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %files libs
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libpackagekit-glib2.so.*.*.*
-%attr(755,root,root) %ghost %{_libdir}/libpackagekit-glib2.so.18
+%{_libdir}/libpackagekit-glib2.so.*.*.*
+%ghost %{_libdir}/libpackagekit-glib2.so.18
 %{_libdir}/girepository-1.0/PackageKitGlib-1.0.typelib
 # NOTE: dbus interface xmls are commonly used:
 # - at runtime by packagekitd
@@ -509,10 +504,10 @@ rm -rf $RPM_BUILD_ROOT
 
 %files devel
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libpackagekit-glib2.so
+%{_libdir}/libpackagekit-glib2.so
 %{_pkgconfigdir}/packagekit-glib2.pc
-%dir %{_includedir}/PackageKit
-%{_includedir}/PackageKit/packagekit-glib2
+%dir %{_includedir}/packagekit
+%{_includedir}/packagekit/packagekit-glib2
 %{_datadir}/gir-1.0/PackageKitGlib-1.0.gir
 
 %if %{with static_libs}
@@ -537,7 +532,7 @@ rm -rf $RPM_BUILD_ROOT
 %if %{with alpm}
 %files backend-alpm
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_alpm.so
+%{_libdir}/packagekit-backend/libpk_backend_alpm.so
 %dir %{_sysconfdir}/PackageKit/alpm.d
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/alpm.d/groups.list
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/alpm.d/pacman.conf
@@ -551,7 +546,7 @@ rm -rf $RPM_BUILD_ROOT
 %if %{with apt}
 %files backend-aptcc
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_aptcc.so
+%{_libdir}/packagekit-backend/libpk_backend_aptcc.so
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/apt/apt.conf.d/20packagekit
 %dir %{_datadir}/PackageKit/helpers/aptcc
 %attr(755,root,root) %{_datadir}/PackageKit/helpers/aptcc/get-distro-upgrade.py
@@ -562,61 +557,54 @@ rm -rf $RPM_BUILD_ROOT
 %if %{with dnf}
 %files backend-dnf
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_dnf.so
-%attr(755,root,root) %{_libexecdir}/packagekit-dnf-refresh-repo
-%{py3_sitescriptdir}/dnf-plugins/notify_packagekit.py
-%{py3_sitescriptdir}/dnf-plugins/__pycache__/notify_packagekit.cpython-*.py[co]
+%doc backends/dnf5/README.md
+%{_libdir}/packagekit-backend/libpk_backend_dnf5.so
+%{_libdir}/rpm-plugins/notify_packagekit.so
+/usr/lib/rpm/macros.d/macros.transaction_notify_packagekit
 %endif
 
 %if %{with entropy}
 %files backend-entropy
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_entropy.so
+%doc backends/entropy/TODO
+%{_libdir}/packagekit-backend/libpk_backend_entropy.so
 %dir %{_datadir}/PackageKit/helpers/entropy
 %attr(755,root,root) %{_datadir}/PackageKit/helpers/entropy/entropyBackend.py
+%endif
+
+%if %{with eopkg}
+%files backend-eopkg
+%defattr(644,root,root,755)
+%{_libdir}/packagekit-backend/libpk_backend_eopkg.so
+%dir %{_sysconfdir}/PackageKit/eopkg.d
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/eopkg.d/groups.list
+%attr(755,root,root) %{_datadir}/PackageKit/helpers/eopkg/eopkgBackend.py
 %endif
 
 %if %{with nix}
 %files backend-nix
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_nix.so
-%endif
-
-%if %{with pisi}
-%files backend-pisi
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_pisi.so
-%dir %{_datadir}/PackageKit/helpers/pisi
-%attr(755,root,root) %{_datadir}/PackageKit/helpers/pisi/pisiBackend.py
+%{_libdir}/packagekit-backend/libpk_backend_nix.so
 %endif
 
 %if %{with poldek}
 %files backend-poldek
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_poldek.so
+%{_libdir}/packagekit-backend/libpk_backend_poldek.so
 %endif
 
 %if %{with portage}
 %files backend-portage
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_portage.so
+%{_libdir}/packagekit-backend/libpk_backend_portage.so
 %dir %{_datadir}/PackageKit/helpers/portage
 %attr(755,root,root) %{_datadir}/PackageKit/helpers/portage/portageBackend.py
-%endif
-
-%if %{with slack}
-%files backend-slack
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_slack.so
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/PackageKit/Slackware.conf
-%dir /var/cache/PackageKit/metadata
-%ghost /var/cache/PackageKit/metadata/metadata.db
 %endif
 
 %if %{with zypp}
 %files backend-zypp
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/packagekit-backend/libpk_backend_zypp.so
+%{_libdir}/packagekit-backend/libpk_backend_zypp.so
 %endif
 
 %files gstreamer-plugin
@@ -628,12 +616,13 @@ rm -rf $RPM_BUILD_ROOT
 %files gtk3-module
 %defattr(644,root,root,755)
 %doc contrib/gtk-module/{GLASS.txt,README}
-%attr(755,root,root) %{_libdir}/gtk-3.0/modules/libpk-gtk-module.so
+%{_libdir}/gtk-3.0/modules/libpk-gtk-module.so
 %{_libdir}/gnome-settings-daemon-3.0/gtk-modules/pk-gtk-module.desktop
 
 %files -n bash-completion-packagekit
 %defattr(644,root,root,755)
 %{bash_compdir}/pkcon
+%{bash_compdir}/pkgcli
 
 %if %{with python}
 %files -n python3-packagekit
